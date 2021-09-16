@@ -1,0 +1,6 @@
+These files are needed only in case of docker errors (msg "docker.runc not installed on system")
+- copy the file into /etc/docker renaming it into daemon.json
+- restart docker service
+  sudo systemctl restart docker
+- verify
+  docker info 

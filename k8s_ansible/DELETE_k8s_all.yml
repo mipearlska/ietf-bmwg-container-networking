@@ -1,0 +1,3 @@
+---
+- import_playbook: playbooks/reset-k8s-cluster.yml
+- import_playbook: playbooks/delete-k8s-config.yml
