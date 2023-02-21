@@ -3,12 +3,6 @@
 ![topology](images/topo.png)
 ![configuration](images/benchmark_config.PNG)
 
-|     Node name     | Specification                                                | Description                                                  |
-| :---------------: | :----------------------------------------------------------- | :----------------------------------------------------------- |
-|    Master node    | - CPU : E5-2620 v3 @2.40GHz; 12 cores <br/>- MEM : 32GB <br/>- DISK : 1TB <br/>- NIC : control plane 1G <br/>- OS : CentOS Linux 7.9 | \- Container Deployment and Network Allocation<br/>\- Kubernetes Master |
-|    Worker node    | - CPU : Gold 6148 CPU @2.40GHz; 80 cores <br/>- MEM : 256GB<br/>- DISK : 2TB<br/>- NIC : data plane XL710 for 40GbE <br/>- OS : CentOS Linux 7.9 | \- Container Service<br/>\- Kubernets Worker<br/>- System Under Test (SUT) |
-| Traffic Generator | - CPU : Gold 6148 CPU @2.40GHz; 80 cores<br/>- MEM : 256GB<br/>- DISK : 2TB<br/>- NIC : data plane XL710 for 40GbE<br/>- OS : CentOS Linux 7.9 | \- Traffic Generator<br/>\- TREX v2.82                       |
-
 ## Software Prerequisites for Master Nodes, and Worker Nodes
 
 ```
