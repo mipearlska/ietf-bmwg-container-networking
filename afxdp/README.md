@@ -1,1 +1,1 @@
-![scenarios](afxdp.png)
+![scenarios](afxdp.PNG)
