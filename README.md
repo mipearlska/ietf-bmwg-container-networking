@@ -1,5 +1,6 @@
 # Hardware Specification
 
+![topology](images/topo.png)
 ![configuration](images/benchmark_config.PNG)
 
 |     Node name     | Specification                                                | Description                                                  |
