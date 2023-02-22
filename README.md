@@ -1,6 +1,8 @@
-# Hardware Specification
+## Testbed Topology
 
 ![topology](images/topo.png)
+
+## Benchmarking Configuration
 ![configuration](images/benchmark_config.PNG)
 
 ## Software Prerequisites for Master Nodes, and Worker Nodes
