@@ -1,65 +1,33 @@
 # Prerequisites
 ### OS: Ubuntu 22.04 (OS kernel 5.15)
-### Install docker, kubernetes v1.23.5, Multus CNI, AFXDP-k8S Plugin (daemonset below)
+### Install docker, kubernetes v1.23.5, Multus CNI, AFXDP-k8S Plugin (daemonset below - apply will install plugin and CNI bin to all nodes)
 ### Setup hugepages 2Mi at worker node
-### Build CNDP image (disable MAC_SWAP function in cndp/examples/cndpfwd/main.h before build)
+### Build CNDP image (disable MAC_SWAP function in cndp/examples/cndpfwd/main.h before build, replace the default cndp/examples/cndpfwd/fwd.jsonc (below), then copy the Dockerfile to /cndp folder)
 ```
 https://github.com/CloudNativeDataPlane/cndp/tree/main/containerization/docker
 ```
 
 ```bash
-docker save -o cndp.tar cndp:latest
-scp -r cndp.tar worker2@192.168.26.42:/home/worker2
-docker load -i cndp.tar
 apt install -y iproute2
 apt install -y net-tools
 ```
+# Benchmarking Flow
+0. (t-rex) Config t-rex traffic profile (/etc/trex_cfg.yaml) as below then start t-rex. Not send any traffic yet
+1. (master) Apply afxdp plugin daemonsets from master (check kube-afxdp-device-plugin Running at both nodes and afxdp cni bin inside /opt/cni/bin at both nodes)
+2. (master) Apply network attachment definition (check kubectl get net-attach-def)
+3. (worker) Config NIC interface at DUT worker node (promisc, combined 1)
+4. (master) Deploy pod (build cndp pod image with proper fwd.jsonc configuration first if not done yet)
+5. (master) Kubectl exec into pod then run cndpfwd app
+6. (t-rex) Send traffic from t-rex
+7. (t-rex) Run benchmarking NDR app from t-rex
 
-# 1. T-Rex Traffic Generator
-### 1.1. Config t-rex (packet src,destination IP/MAC)
-```bash
-- nano /etc/trex_cfg.yaml
-```
-```bash
-  port_info:
-      - dest_mac: 40:a6:b7:19:f2:01 # MAC OF port 1 t-rex 
-        src_mac:  40:a6:b7:19:f2:00
-      - dest_mac: 40:a6:b7:19:f2:00 # MAC OF port 0 t-rex
-        src_mac:  40:a6:b7:19:f2:01
-```
-### 1.2. Start T-gen (1 tab console)
-```bash
-cd v2.92
-./t-rex-64 -i -c 10
-```
-
-### 1.3. Generate traffic (1 tab console)
-```bash
-cd v2.92
-./trex-console
-tui
-```
-
-### Generate test traffic
-```bash
-start -f stl/bench.py -p 0 -t size=1518
-start -f stl/bench.py -p 0 -m 100% --force -t size=1518
-start -f stl/bench.py -p 1 -m 100% --force -t size=1518
-start -f stl/bench.py -m 100% --force -t size=1518
-```
-(p = from port 0 or 1 of tgen, no -p flag = generate from both ports, -size = packet size, -m = %max line rate of NIC card)
-
-### 1.4. Benchmark application run (No Drop Rate Benchmarking) - (Manual: https://trex-tgn.cisco.com/trex/doc/trex_ndr_bench_doc.html)
-```bash
-./ndr --stl --port 0 1 -v --profile stl/bench.py --prof-tun size=1518 --opt-bin-search
-```
-
-# 2. Set up AFXDP-k8S Plugin (master node)
+# 1. Set up AFXDP-k8S Plugin (master node)
 ```
 https://github.com/intel/afxdp-plugins-for-kubernetes
 ```
 
-### Daemonset
+### Daemonset (replace the default deployments/daemonset.yml in afxdp plugin github with worker node interfaces configuration)
+From master
 ```bash
 kubectl apply -f daemonset.yml
 ```
@@ -209,6 +177,7 @@ spec:
 ```
 
 ### Network Attachment Definition
+From master
 ```bash
 kubectl apply -f network-attachment-definition1.yaml
 kubectl apply -f network-attachment-definition2.yaml
@@ -269,7 +238,7 @@ spec:
 ```
 
 ```bash
-kubectl get node worker1 -o json | jq '.status.allocatable'
+kubectl get node worker41 -o json | jq '.status.allocatable'
 ```
 ```
 {
@@ -286,6 +255,7 @@ kubectl get node worker1 -o json | jq '.status.allocatable'
 ```
 
 ### Configure NIC interface
+From worker
 ```bash
 ifconfig enp175s0f0 promisc
 ifconfig enp175s0f1 promisc
@@ -297,6 +267,12 @@ ethtool -g enp175s0f0 #check
 # 3. CNDPFWD application (master node)
 
 ### POD yaml
+From master
+Image: 
+```
+docker pull mipearlska/cndp
+```
+This image has been build with our system fwd.jsonc configuration (please change configuration inside fwd.jsonc suitable to yours)
 
 ```
 apiVersion: v1
@@ -337,7 +313,9 @@ spec:
 
 ```
 
-### CNDP fwd.jsonc configuration file
+### CNDP fwd.jsonc configuration file (config suitable lcore-group, lports, thread)
+Replace the default fwd.jsonc in /cndp/examples/cndpfwd/fwd.jsonc
+Must be configured before building the cndp image
 ```
 {
     // (R) - Required entry
@@ -505,4 +483,51 @@ spec:
 ```bash
 kubectl exec -it cndp-pod /bin/bash
 cndpfwd -c fwd.jsonc fwd
+```
+
+# 2. T-Rex Traffic Generator
+### 2.1. Config t-rex (packet src,destination IP/MAC)
+```bash
+- nano /etc/trex_cfg.yaml
+```
+```bash
+  port_info:
+      - dest_mac: 40:a6:b7:19:f2:01 # MAC OF port 1 t-rex 
+        src_mac:  40:a6:b7:19:f2:00
+      - dest_mac: 40:a6:b7:19:f2:00 # MAC OF port 0 t-rex
+        src_mac:  40:a6:b7:19:f2:01
+```
+### 2.2. Start T-gen (1 tab console)
+```bash
+cd v2.92
+./t-rex-64 -i -c 10
+```
+
+### 2.3. Generate traffic (1 tab console)
+```bash
+cd v2.92
+./trex-console
+tui
+```
+
+### Generate test traffic
+```bash
+start -f stl/bench.py -p 0 -t size=1518
+start -f stl/bench.py -p 0 -m 100% --force -t size=1518
+start -f stl/bench.py -p 1 -m 100% --force -t size=1518
+start -f stl/bench.py -m 100% --force -t size=1518
+```
+(p = from port 0 or 1 of tgen, no -p flag = generate from both ports, -size = packet size, -m = %max line rate of NIC card)
+
+### 2.4. Benchmark application run (No Drop Rate Benchmarking) - (Manual: https://trex-tgn.cisco.com/trex/doc/trex_ndr_bench_doc.html)
+```bash
+./ndr --stl --port 0 1 -v --profile stl/bench.py --prof-tun size=1518 --opt-bin-search
+```
+
+
+###Others
+```
+docker save -o cndp.tar cndp:latest
+scp -r cndp.tar worker2@192.168.26.42:/home/worker2
+docker load -i cndp.tar
 ```
