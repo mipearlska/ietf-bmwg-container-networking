@@ -1,4 +1,5 @@
 # Prequisites Installation at DUT
+Our testbed DUT currently uses Ubuntu 22.04
 ### Libraries, go, hugepages, iommu, docker, kubernetes
 ### dpdk, VPP, OVS-DPDK, OVS-DPDK-afxdp, SRIOV CNI, userspace CNI, multus CNI
 ### For AFXDP benchmarking, libbpf is required (need Ubuntu version from 20.04)
