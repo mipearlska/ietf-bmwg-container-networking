@@ -1,2 +1,0 @@
----
-- import_playbook: playbooks/reset-k8s-cluster.yml
