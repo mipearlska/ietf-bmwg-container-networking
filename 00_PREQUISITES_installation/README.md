@@ -61,6 +61,7 @@ dmesg |grep -E "DMAR|IOMMU"
 ```
 
 # Install VPP 19.04 for building userspaceCNI
+### (Only Ubuntu 18.04 LTS)  (higher Ubuntu version (20.04, 22.04) cannot build)
 ``` 
 curl -s https://packagecloud.io/install/repositories/fdio/1904/script.deb.sh | sudo bash
 sudo apt-get update
@@ -78,7 +79,7 @@ sudo apt autoremove
 ```
 
 # Build UserspaceCNI (Requirement: VPP 19.04)
-### (Ubuntu 18.04 LTS, higher Ubuntu version (20.04, 22.04) cannot build)
+### (Only Ubuntu 18.04 LTS)  (higher Ubuntu version (20.04, 22.04) cannot build)
 ### In case of using Ubuntu 20.04, 22.04 for benchmarking OVS-afxdp (libbpf only support from Ubuntu 20.04), build the CNI bin first then copy to the higher Ubuntu DUT
 ### userspace CNI bin must be copied to all nodes (/opt/cni/bin)
 ```
