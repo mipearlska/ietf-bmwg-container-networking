@@ -1,4 +1,4 @@
-# Prerequisites
+# Prequisites
 ### OS: Ubuntu 22.04 (OS kernel 5.15)
 ### Install docker, kubernetes v1.23.5, Multus CNI, Userspace CNI 
 ### Install DPDK 22.11.1 (use meson ninja)
