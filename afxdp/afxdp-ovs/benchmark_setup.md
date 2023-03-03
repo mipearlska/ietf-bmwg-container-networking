@@ -1,13 +1,15 @@
 # Prerequisites
 ### OS: Ubuntu 22.04 (OS kernel 5.15)
-### Install docker, kubernetes v1.23.5, Multus CNI, Userspace CNI
-### Install DPDK 21.11.1 (use meson ninja)
-### Install OVS-DPDK 2.17.2 (current latest) (enable afxdp support flag when run ..configure)
+### Install docker, kubernetes v1.23.5, Multus CNI, Userspace CNI 
+### Install DPDK 22.11.1 (use meson ninja)
+### Install OVS-DPDK 3.1.90 (current latest) (enable afxdp support flag when run ..configure)
+### Userspace CNI bin must be copied to all nodes (/opt/cni/bin) - Should build from Ubuntu 18.04 machine then copy to 22.04 DUT
 
 ```bash
 sudo apt-get install -qy kubelet=1.23.5-00 kubectl=1.23.5-00 kubeadm=1.23.5-00
 ```
 
+Libbpf only support from Ubuntu 20.04 to higher
 ```bash
 install libbpf (apt install libbpf-dev)
 install libtool (apt-get install libtool)
@@ -20,46 +22,17 @@ make -j $(nproc)
 sudo make install
 ```
 
-# 1. T-Rex Traffic Generator
-### 1.1. Config t-rex (packet src,destination IP/MAC)
-```bash
-- nano /etc/trex_cfg.yaml
-```
-```bash
-  port_info:
-      - dest_mac: 40:a6:b7:19:f2:39 # MAC OF port 1 t-rex 
-        src_mac:  40:a6:b7:19:f2:38
-      - dest_mac: 40:a6:b7:19:f2:38 # MAC OF port 0 t-rex
-        src_mac:  40:a6:b7:19:f2:39
-```
-### 1.2. Start T-gen (1 tab console)
-```bash
-cd v2.92
-./t-rex-64 -i -c 10
-```
+# Benchmarking Flow
+0. (t-rex) Config t-rex traffic profile (/etc/trex_cfg.yaml) as below then start t-rex. Not send any traffic yet
+1. (master) Apply network attachment definition (check kubectl get net-attach-def)
+2. (worker) Config NIC interface at DUT worker node (combined 1)
+3. (worker) Start OVS and config OVS flow
+4. (master) Deploy pod 
+5. (master) Kubectl exec into pod then run dpdk-l2fwd app
+6. (t-rex) Send traffic from t-rex
+7. (t-rex) Run benchmarking NDR app from t-rex
 
-### 1.3. Generate traffic (1 tab console)
-```bash
-cd v2.92
-./trex-console
-tui
-```
-
-### Generate test traffic
-```bash
-start -f stl/bench.py -p 0 -t size=1518
-start -f stl/bench.py -p 0 -m 100% --force -t size=1518
-start -f stl/bench.py -p 1 -m 100% --force -t size=1518
-start -f stl/bench.py -m 100% --force -t size=1518
-```
-(p = from port 0 or 1 of tgen, no -p flag = generate from both ports, -size = packet size, -m = %max line rate of NIC card)
-
-### 1.4. Benchmark application run (No Drop Rate Benchmarking) - (Manual: https://trex-tgn.cisco.com/trex/doc/trex_ndr_bench_doc.html)
-```bash
-./ndr --stl --port 0 1 -v --profile stl/bench.py --prof-tun size=1518 --opt-bin-search
-```
-
-# 2. Set up packet flow through OVS-DPDK
+# 1. Set up packet flow through OVS-DPDK
 ```bash
 ethtool -L enp175s0f0 combined 1
 ethtool -L enp175s0f1 combined 1
@@ -105,7 +78,7 @@ ovs-ofctl --timeout 10 -O Openflow13 add-flow ovs-br0 in_port=4,idle_timeout=0,a
 ovs-ofctl dump-flows ovs-br0
 ```
 
-# 3. L2FWD application
+# 2. L2FWD application
 
 ### Userspace CNI Network Attachment Definition
 
@@ -148,7 +121,10 @@ spec:
 
 
 ### POD yaml (L2fwd or testpmd)
-
+Image: (dpdk app ver 22.11, ubuntu 22.04)
+```
+docker pull mipearlska/dpdk-app-ubuntu
+```
 ```
 root@master ~/t/u/ovs-dpdk# cat ovs-pod.yaml
 apiVersion: v1
@@ -160,7 +136,7 @@ metadata:
 spec:
   containers:
   - name: multi-vhost
-    image: dpdk-app-centos:latest
+    image: mipearlska/dpdk-app-ubuntu
     imagePullPolicy: IfNotPresent
     terminationMessagePath: "/tmp/ovs-pod/"
 #    command: [ "/bin/bash", "-c", "--" ]
@@ -207,6 +183,10 @@ spec:
 cd $DPDK_DIRECTORY/build/examples
 
 ./dpdk-l2fwd -n 4 -l 15-18 --single-file-segments --vdev=virtio_user0,path=/usr/local/var/run/openvswitch/dpdkvhostuser0 --vdev=virtio_user1,path=/usr/local/var/run/openvswitch/dpdkvhostuser1 --no-pci -- -p 0x3 -T 10 --no-mac-updating
+
+./dpdk-l2fwd -n 4 -l 15-18 --single-file-segments --vdev=virtio_user0,path=/var/run/openvswitch/dpdkvhostuser0 --vdev=virtio_user1,path=/var/run/openvswitch/dpdkvhostuser1 --no-pci -- -p 0x3 -T 10 --no-mac-updating
+
+l2fwd -n 4 -l 15-18 --single-file-segments --vdev=virtio_user0,path=/var/run/openvswitch/dpdkvhostuser0 --vdev=virtio_user1,path=/var/run/openvswitch/dpdkvhostuser1 --no-pci -- -p 0x3 -T 10 --no-mac-updating
 ```
 
 
@@ -229,4 +209,43 @@ sar -n DEV 1
 ```bash
 ovs-appctl dpif-netdev/pmd-stats-show
 ovs-appctl dpif/show
+```
+
+# 3. T-Rex Traffic Generator
+### 3.1. Config t-rex (packet src,destination IP/MAC)
+```bash
+- nano /etc/trex_cfg.yaml
+```
+```bash
+  port_info:
+      - dest_mac: 40:a6:b7:19:f2:39 # MAC OF port 1 t-rex 
+        src_mac:  40:a6:b7:19:f2:38
+      - dest_mac: 40:a6:b7:19:f2:38 # MAC OF port 0 t-rex
+        src_mac:  40:a6:b7:19:f2:39
+```
+### 3.2. Start T-gen (1 tab console)
+```bash
+cd v2.92
+./t-rex-64 -i -c 10
+```
+
+### 3.3. Generate traffic (1 tab console)
+```bash
+cd v2.92
+./trex-console
+tui
+```
+
+### Generate test traffic
+```bash
+start -f stl/bench.py -p 0 -t size=1518
+start -f stl/bench.py -p 0 -m 100% --force -t size=1518
+start -f stl/bench.py -p 1 -m 100% --force -t size=1518
+start -f stl/bench.py -m 100% --force -t size=1518
+```
+(p = from port 0 or 1 of tgen, no -p flag = generate from both ports, -size = packet size, -m = %max line rate of NIC card)
+
+### 3.4. Benchmark application run (No Drop Rate Benchmarking) - (Manual: https://trex-tgn.cisco.com/trex/doc/trex_ndr_bench_doc.html)
+```bash
+./ndr --stl --port 0 1 -v --profile stl/bench.py --prof-tun size=1518 --opt-bin-search
 ```
