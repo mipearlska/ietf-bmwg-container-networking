@@ -8,7 +8,7 @@ https://github.com/huyng14/bmwg-container-network/blob/main/roles/sriov-nic-init
 ## High version T-Rex might not compatible with SRIOV VF, cause traffic to be dropped (our test failed with v2.92). Consider to use v2.73 or lower
 
 # 1. Setup SR-IOV Virutal Functions at Worker DUT node
-## Create VFs
+### Create VFs
 - Checking supported maximum VFs
 
 ```
@@ -104,7 +104,7 @@ Network devices using kernel driver
 Refer:
 https://github.com/k8snetworkplumbingwg/sriov-network-device-plugin#quick-start
 
-## 2.1 Build SRIOV CNI bin or get from 1_cnibin folder
+### 2.1 Build SRIOV CNI bin or get from 1_cnibin folder
 ```
 $ root@master ~/sriov-installer# git clone https://github.com/k8snetworkplumbingwg/sriov-cni.git
 $ cd sriov-cni
@@ -113,7 +113,7 @@ $ cp build/sriov /opt/cni/bin
 ```
 Copy the sriov cni bin to all nodes
 
-## 2.2 Configure SRIOV device plugin
+### 2.2 Configure SRIOV device plugin
 
 - Clone the plugin repo
 ```
@@ -125,7 +125,7 @@ cd sriov-network-device-plugin
  docker pull ghcr.io/k8snetworkplumbingwg/sriov-network-device-plugin:latest
 ```
 
-## 2.3 Modify the SR-IOV resource pool ConfigMap to fit with the DUT system then Apply the ConfigMap
+### 2.3 Modify the SR-IOV resource pool ConfigMap to fit with the DUT system then Apply the ConfigMap
 
 - Check DUT system NIC info
 ```
@@ -216,7 +216,7 @@ kubectl get configmaps -A
 > kube-system       **sriovdp-config**                       1      67s
 ```
 
-## 2.4.Apply the  SR-IOV network device plugin Daemonset
+### 2.4.Apply the  SR-IOV network device plugin Daemonset
 
 ```
 cd sriov-network-device-plugin/deployments
@@ -250,7 +250,7 @@ kubectl get pod -A
 ```
 
 
-## 2.5. Deploy SR-IOV network attachment definition
+### 2.5. Deploy SR-IOV network attachment definition
 
 ```
 kubectl create -f netAttach-sriov-dpdk1.yaml
@@ -316,7 +316,7 @@ kubectl get node worker41 -o json | jq '.status.allocatable'
 }
 ```
 
-## 2.6 Deploy SR-IOV l2fwd pod
+### 2.6 Deploy SR-IOV l2fwd pod
 - App image
 ```
 docker pull mipearlska/dpdk-app-ubuntu
@@ -374,7 +374,7 @@ spec:
 
 ```
 
-## 2.7 Run the l2fwd inside pod
+### 2.7 Run the l2fwd inside pod
 ** Consider to change numa core (-l 38-39) if running fail
 
 ```
