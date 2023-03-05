@@ -173,3 +173,37 @@ cat ./deployments/multus-daemonset.yml | kubectl apply -f -
 ###Veryfying
 kubectl get pods --all-namespaces | grep -i multus
 ```
+
+# Configuring traffic generator (TREX) at Traffic generator server
+
+- Download t-rex
+wget https://trex-tgn.cisco.com/trex/release/v2.74.tar.gz
+
+- Configure DPDK running vfio-pci driver
+``` bash
+
+modinfo i40e | grep ver
+modprobe vfio-pci
+
+./dpdk-20.11/usertools/dpdk-devbind.py -s
+./dpdk-20.11/usertools/dpdk-devbind.py -b vfio-pci 0000:86:00.0 0000:86:00.1
+```
+
+> ```
+> Output example
+> [root@tgen ~]# ./dpdk-20.11/usertools/dpdk-devbind.py -s
+> 
+> Network devices using DPDK-compatible driver
+> ============================================
+> 
+> 0000:86:00.0 'Ethernet Controller XL710 for 40GbE QSFP+ 1583' drv=vfio-pci unused=i40e
+> 0000:86:00.1 'Ethernet Controller XL710 for 40GbE QSFP+ 1583' drv=vfio-pci unused=i40e
+> 
+> Network devices using kernel driver
+> ===================================
+> 
+> 0000:3d:00.0 'Ethernet Connection X722 for 10GBASE-T 37d2' if=eno1 drv=i40e unused=vfio-pci *Active*
+> 0000:3d:00.1 'Ethernet Connection X722 for 10GBASE-T 37d2' if=eno2 drv=i40e unused=vfio-pci
+> ```
+
+
