@@ -98,6 +98,7 @@ Network devices using kernel driver
 0000:3d:00.1 'Ethernet Connection X722 for 10GBASE-T 37d2' if=eno2 drv=i40e unused=vfio-pci 
 0000:af:00.0 'Ethernet Controller XL710 for 40GbE QSFP+ 1583' if=enp175s0f0 drv=i40e unused=vfio-pci 
 0000:af:00.1 'Ethernet Controller XL710 for 40GbE QSFP+ 1583' if=enp175s0f1 drv=i40e unused=vfio-pci 
+```
 
 # 2. Setup SRIOV plugin
 
