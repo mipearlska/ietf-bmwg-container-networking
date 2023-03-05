@@ -1,11 +1,20 @@
 Refer: 
 https://github.com/huyng14/bmwg-container-network/blob/main/roles/sriov-nic-init/tasks/main.yml
 
-#Prequisites
+# Prequisites
 ## Docker, Kubernetes cluster v1.23.5, Multus CNI, UserspaceCNI, SRIOV plugin (setup below)
 ## Userspace and SRIOV CNI bin must be copied at /opt/cni/bin in all nodes
 ## Setup iommu (guide in 00_PREQUISITES)
 ## High version T-Rex might not compatible with SRIOV VF, cause traffic to be dropped (our test failed with v2.92). Consider to use v2.73 or lower
+
+# Benchmarking Flow
+1. (worker) Setup SRIOV-VF
+2. (master) Apply SRIOV plugin configmap, daemonset, network attachment definition
+3. (master) Deploy pod 
+4. (master) Kubectl exec into pod then run dpdk-l2fwd app
+5. (t-rex) Config traffic profile then send traffic from t-rex
+6. (t-rex) Run benchmarking NDR app from t-rex
+
 
 # 1. Setup SR-IOV Virutal Functions at Worker DUT node
 ### Create VFs
