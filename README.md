@@ -1,9 +1,9 @@
 ## Testbed Topology
 
-![topology](images/topo.png)
+![topology](00_images/topo.png)
 
 ## Benchmarking Configuration
-![configuration](images/benchmark_config.PNG)
+
 
 
 Kubernetes version
