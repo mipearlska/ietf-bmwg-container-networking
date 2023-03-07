@@ -12,7 +12,7 @@
 
 ## This repo contains:
 - Benchmarking prequisites installation at /00_PREQUISITES_installation
-- Pre-build AFXDP, Userspace, SRIOV CNI binaries at /1_cnibin
+- Pre-built AFXDP, Userspace, SRIOV CNI binaries at /1_cnibin
 - Benchmarking guide for Userspace Acceleration Networking Models (/ovs-dpdk, /vpp)
 - Benchmarking guide for SRIOV Acceleration Networking Models (/sriov)
 - Benchmarking guide for eBPF Acceleration Networking Models - AFXDP based (/afxdp/afxdp-ovs, /afxdp/afxdp-cndp)
