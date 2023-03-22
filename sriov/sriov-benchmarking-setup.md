@@ -90,7 +90,7 @@ irqbypass              13503  2 kvm,vfio_pci
 
 - attach VFs driver, Bind VF drivers
 
-maybe using dpdk/usertool/dpdk-bind.py to add driver to VF
+use dpdk/usertool/dpdk-bind.py to add driver to VF
 
 ```
 [root@worker usertools]# ./dpdk-devbind.py -b vfio-pci 0000:af:02.0 0000:af:0a.0
