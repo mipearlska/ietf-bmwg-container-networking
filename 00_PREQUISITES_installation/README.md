@@ -37,7 +37,9 @@ source .profile
 https://www.digitalocean.com/community/tutorials/how-to-install-go-on-ubuntu-20-04
 
 # Setup hugepages-iommu for dpdk
-First, Enable** VT-D** at BIOS level (restart server/computer and find corresponding settings inside BIOS setting (F2/F10))
+First, Enable** VT-D** at BIOS level (restart server/computer and find corresponding settings inside BIOS setting (F2/F10)). Enable then confirm changes, restart again
+
+Then,
 ```
 nano /etc/default/grub
 ```
