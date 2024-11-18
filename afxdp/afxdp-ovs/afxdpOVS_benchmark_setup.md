@@ -35,6 +35,34 @@ sudo make install
 # 1. Set up packet flow through OVS-DPDK
 Please use ethtool -l and ethtool -g to check default settings first. So that after testing, you can revert "combined, rx, tx" settings to default
 ```bash
+root@worker41:~# ethtool -l enp175s0f0
+Channel parameters for enp175s0f0:
+Pre-set maximums:
+RX:		n/a
+TX:		n/a
+Other:		1
+Combined:	80
+Current hardware settings:
+RX:		n/a
+TX:		n/a
+Other:		1
+Combined:	80
+root@worker41:~# ethtool -g enp175s0f0
+Ring parameters for enp175s0f0:
+Pre-set maximums:
+RX:		4096
+RX Mini:	n/a
+RX Jumbo:	n/a
+TX:		4096
+Current hardware settings:
+RX:		512
+RX Mini:	n/a
+RX Jumbo:	n/a
+TX:		512
+
+```
+
+```bash
 ethtool -L enp175s0f0 combined 1
 ethtool -L enp175s0f1 combined 1
 ethtool -G enp175s0f0 rx 4096 tx 4096
