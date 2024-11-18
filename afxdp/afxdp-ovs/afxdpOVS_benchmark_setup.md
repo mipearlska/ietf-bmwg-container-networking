@@ -34,6 +34,7 @@ sudo make install
 
 # 1. Set up packet flow through OVS-DPDK
 Please use ethtool -l and ethtool -g to check default settings first. So that after testing, you can revert "combined, rx, tx" settings to default
+Default example:
 ```bash
 root@worker41:~# ethtool -l enp175s0f0
 Channel parameters for enp175s0f0:
@@ -62,6 +63,7 @@ TX:		512
 
 ```
 
+Configure to combined 1 and maximum rx tx for benchmarking purpose:
 ```bash
 ethtool -L enp175s0f0 combined 1
 ethtool -L enp175s0f1 combined 1
