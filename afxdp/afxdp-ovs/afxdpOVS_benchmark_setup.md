@@ -33,6 +33,7 @@ sudo make install
 7. (t-rex) Run benchmarking NDR app from t-rex
 
 # 1. Set up packet flow through OVS-DPDK
+Please use ethtool -l and ethtool -g to check default settings first. So that after testing, you can revert "combined, rx, tx" settings to default
 ```bash
 ethtool -L enp175s0f0 combined 1
 ethtool -L enp175s0f1 combined 1
