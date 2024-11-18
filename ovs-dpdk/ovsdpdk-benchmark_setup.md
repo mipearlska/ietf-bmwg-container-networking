@@ -36,20 +36,18 @@ sudo make install
 use dpdk/usertool/dpdk-bind.py to add driver to VF
 
 ```
-[root@worker usertools]# ./dpdk-devbind.py -b vfio-pci 0000:af:02.0 0000:af:0a.0
+[root@worker usertools]# ./dpdk-devbind.py -b vfio-pci 0000:af:00.0 0000:af:00.1
 [root@worker usertools]# ./dpdk-devbind.py -s
 
 Network devices using DPDK-compatible driver
 ============================================
-0000:af:02.0 'Ethernet Virtual Function 700 Series 154c' drv=vfio-pci unused=iavf
-0000:af:0a.0 'Ethernet Virtual Function 700 Series 154c' drv=vfio-pci unused=iavf
+0000:af:00.0 'Ethernet Controller XL710 for 40GbE QSFP+ 1583' drv=vfio-pci unused=i40e
+0000:af:00.1 'Ethernet Controller XL710 for 40GbE QSFP+ 1583' drv=vfio-pci unused=i40e
 
 Network devices using kernel driver
 ===================================
 0000:3d:00.0 'Ethernet Connection X722 for 10GBASE-T 37d2' if=eno1 drv=i40e unused=vfio-pci *Active*
 0000:3d:00.1 'Ethernet Connection X722 for 10GBASE-T 37d2' if=eno2 drv=i40e unused=vfio-pci 
-0000:af:00.0 'Ethernet Controller XL710 for 40GbE QSFP+ 1583' if=enp175s0f0 drv=i40e unused=vfio-pci 
-0000:af:00.1 'Ethernet Controller XL710 for 40GbE QSFP+ 1583' if=enp175s0f1 drv=i40e unused=vfio-pci 
 ```
 
 dpdk-handling core2(lcore-mask), 8 dpdk pmd core 0-8(pmd-cpu-mask), afxdp pmd core 4,6 (pmd-rxq-affinity: queue 0 - core 4,6)
