@@ -264,6 +264,10 @@ ethtool -L enp175s0f1 combined 1
 ethtool -l enp175s0f0 #check
 ethtool -g enp175s0f0 #check
 ```
+Turn off Promisc mode after test:
+```bash
+ifconfig enp175s0f0 -promisc
+```
 # 3. CNDPFWD application (master node)
 
 ### POD yaml
