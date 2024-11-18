@@ -296,7 +296,7 @@ spec:
       command: ["sleep", "infinity"]
 #      command: ["/bin/bash"]
 #      args: ["while true; do sleep 30; done;" ]
-      image: cndp
+      image: mipearlska/cndp:latest
       imagePullPolicy: Never
       securityContext:
         privileged: true
