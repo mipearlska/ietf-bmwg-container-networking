@@ -169,9 +169,9 @@ sudo apt-get install -qy kubelet=1.23.5-00 kubectl=1.23.5-00 kubeadm=1.23.5-00
 # Create K8s cluster - flannel CNI
 
 # Install MultusCNI from master
+Please install "thin" version of Multus. "thick" version does not create multus.kubeconfig file which is required in Userspace CNi Network Attachment Definition
 ```
-git clone https://github.com/k8snetworkplumbingwg/multus-cni.git && cd multus-cni
-cat ./deployments/multus-daemonset.yml | kubectl apply -f -
+kubectl apply -f https://raw.githubusercontent.com/k8snetworkplumbingwg/multus-cni/master/deployments/multus-daemonset.yml
 
 ###Veryfying
 kubectl get pods --all-namespaces | grep -i multus
