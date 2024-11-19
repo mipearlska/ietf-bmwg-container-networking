@@ -289,3 +289,19 @@ start -f stl/bench.py -m 100% --force -t size=1518
 ```bash
 ./ndr --stl --port 0 1 -v --profile stl/bench.py --prof-tun size=1518 --opt-bin-search
 ```
+
+### Clean up, revert environment After Finishing Benchmark
+Master
+```
+kubectl delete -f ovs-pod.yaml
+kubectl delete -f net_attach_definition.yaml
+```
+
+Worker
+```
+ovs-vsctl del-br ovs-br0
+/usr/local/share/openvswitch/scripts/ovs-ctl --no-ovsdb-server --db-sock="/usr/local/var/run/openvswitch/db.sock" stop
+/usr/local/share/openvswitch/scripts/ovs-ctl --no-ovs-vswitchd stop
+
+root@worker:~/dpdk-stable-22.11.1/usertools# ./dpdk-devbind.py -b i40e 0000:af:00.0 0000:af:00.1
+```
