@@ -280,3 +280,21 @@ start -f stl/bench.py -m 100% --force -t size=1518
 ```bash
 ./ndr --stl --port 0 1 -v --profile stl/bench.py --prof-tun size=1518 --opt-bin-search
 ```
+
+### Clean up, revert environment After Finishing Benchmark
+Master
+```
+kubectl delete -f ovs-pod.yaml
+kubectl delete -f net-attach-def-userspace-ovs.yaml
+```
+Worker
+```
+ovs-vsctl del-br ovs-br0
+/usr/local/share/openvswitch/scripts/ovs-ctl --no-ovsdb-server --db-sock="/usr/local/var/run/openvswitch/db.sock" stop
+/usr/local/share/openvswitch/scripts/ovs-ctl --no-ovs-vswitchd stop
+
+ethtool -L enp175s0f0 combined 80
+ethtool -L enp175s0f1 combined 80
+ethtool -G enp175s0f0 rx 512 tx 512
+ethtool -G enp175s0f1 rx 512 tx 512
+```
