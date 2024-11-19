@@ -31,7 +31,7 @@ sudo make install
 
 # 1. Set up packet flow through OVS-DPDK
 
-- attach VFs driver, Bind VF drivers
+- attach/bind DPDK driver to benchmarking NIC interface
 
 use dpdk/usertool/dpdk-bind.py to add driver to VF
 
