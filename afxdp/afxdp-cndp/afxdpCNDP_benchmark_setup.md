@@ -491,6 +491,7 @@ cndpfwd -c fwd.jsonc fwd
 
 # 2. T-Rex Traffic Generator
 ### 2.1. Config t-rex (packet src,destination IP/MAC)
+### Need to change the last MAC Octet to 00 and 01 below (requirement of the CNDPFWD benchmarking app)
 ```bash
 - nano /etc/trex_cfg.yaml
 ```
@@ -534,4 +535,20 @@ start -f stl/bench.py -m 100% --force -t size=1518
 docker save -o cndp.tar cndp:latest
 scp -r cndp.tar worker2@192.168.26.42:/home/worker2
 docker load -i cndp.tar
+```
+
+###Clean up, revert environment After Finishing Benchmark
+Master
+```
+kubectl delete -f cndp-pod.yaml
+kubectl delete -f network-attachment-definition1.yaml
+kubectl delete -f network-attachment-definition2.yaml
+kubectl delete -f daemonset.yml
+```
+Worker
+```
+ifconfig enp175s0f0 -promisc
+ifconfig enp175s0f1 -promisc
+ethtool -L enp175s0f0 combined 80
+ethtool -L enp175s0f1 combined 80
 ```
