@@ -453,4 +453,22 @@ root@master ~/s/my-sriov# kubectl get node worker -o json | jq '.status.allocata
 }
 ```
 
+### Clean up, revert environment After Finishing Benchmark
+Master
+```
+root@master42:~/bmwg/sriov# kubectl delete -f pod-sriov.yaml
+
+root@master42:~/bmwg/sriov/sriov-network-device-plugin/deployments# kubectl delete -f sriovdp-daemonset.yaml
+root@master42:~/bmwg/sriov/sriov-network-device-plugin/deployments# kubectl delete -f config-map.yaml
+
+root@master42:~/bmwg/sriov# kubectl delete -f net-attach-sriov-dpdk1.yaml
+root@master42:~/bmwg/sriov# kubectl delete -f net-attach-sriov-dpdk2.yaml
+```
+
+Worker
+```
+echo 0 > /sys/class/net/enp175s0f0/device/sriov_numvfs
+echo 0 > /sys/class/net/enp175s0f1/device/sriov_numvfs
+```
+
 
