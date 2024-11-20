@@ -32,7 +32,7 @@ create ovs-br0 bridge in OVS vswitch
 /usr/local/bin/ovs-vsctl --may-exist add-br ovs-br0 -- set bridge ovs-br0 datapath_type=netdev
 ```
 
-add OVS port (2 afxdp ports, 2 vhostuser ports)
+add OVS port (Only 2 vhostuser ports)
 ```bash
 ovs-vsctl add-port ovs-br0 dpdkvhostuser0 -- set Interface dpdkvhostuser0 type=dpdkvhostuser
 ovs-vsctl add-port ovs-br0 dpdkvhostuser1 -- set Interface dpdkvhostuser1 type=dpdkvhostuser
