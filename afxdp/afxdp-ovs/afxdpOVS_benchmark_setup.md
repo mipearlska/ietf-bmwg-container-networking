@@ -156,6 +156,8 @@ Image: (dpdk app ver 22.11, ubuntu 22.04)
 ```
 docker pull mipearlska/dpdk-app-ubuntu
 ```
+- Annotations: 2 userspace Network Attachement Definitions name
+- Required volumes: podinfo, hugepages, OVS vsWitch ports directory
 ```
 root@master ~/t/u/ovs-dpdk# cat ovs-pod.yaml
 apiVersion: v1
@@ -210,6 +212,8 @@ spec:
 ```
 
 ### Running l2fwd application
+- vdev: 2 OVS vswitch dpdkvhostuser URL
+- Other params: Please refer to https://doc.dpdk.org/guides/linux_gsg/linux_eal_parameters.html
 ```bash
 cd $DPDK_DIRECTORY/build/examples
 
