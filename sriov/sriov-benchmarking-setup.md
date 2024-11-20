@@ -114,7 +114,7 @@ Network devices using kernel driver
 Refer:
 https://github.com/k8snetworkplumbingwg/sriov-network-device-plugin#quick-start
 
-### 2.1 Build SRIOV CNI bin or get from 1_cnibin folder
+### 2.1 Build SRIOV CNI bin or get directly from this repo 1_cnibin folder
 ```
 $ root@master ~/sriov-installer# git clone https://github.com/k8snetworkplumbingwg/sriov-cni.git
 $ cd sriov-cni
@@ -123,7 +123,7 @@ $ cp build/sriov /opt/cni/bin
 ```
 Copy the sriov cni bin to all nodes
 
-### 2.2 Configure SRIOV device plugin
+### 2.2 Get SRIOV device plugin
 
 - Clone the plugin repo
 ```
@@ -159,7 +159,7 @@ cd sriov-network-device-plugin
 > Class:  Ethernet controller [0200]
 > Device: Ethernet Virtual Function 700 Series [154c]
 ```
-- Modify config-map.yaml
+- Modify config-map.yaml based on the NIC interface info above
 ```
 cd sriov-network-device-plugin/deployments
 nano config-map.yaml
@@ -331,7 +331,8 @@ kubectl get node worker41 -o json | jq '.status.allocatable'
 ```
 docker pull mipearlska/dpdk-app-ubuntu
 ```
-
+- Annotations: 2 SRIOV Network Attachement Definitions name above
+- Define the two SRIOV resource (same as in Network Attachment Definition) in the "requests" field
 ```
 cat pod-sriov.yaml
 ```
@@ -386,7 +387,8 @@ spec:
 
 ### 2.7 Run the l2fwd inside pod
 ** Consider to change numa core (-l 38-39) if running fail
-
+- a: 2 PCI of the SRIOV VFs at worker nodes
+- Other parameters: Please refer to https://doc.dpdk.org/guides/linux_gsg/linux_eal_parameters.html
 ```
 kubectl exec -it pod-sriov /bin/bash
 ./dpdk-l2fwd -n 4 -l 38-39 --socket-mem=0,1024 -a 0000:af:02.0 -a 0000:af:0a.0 -- -p 0x3 -T 30 --no-mac-updating
@@ -396,13 +398,14 @@ kubectl exec -it pod-sriov /bin/bash
 ### High version of T-Rex might cause traffic dropped at SRIOV VF, our test failed with v2.92
 ### This testbed use T-Rex v2.73
 ### 3.1. Config t-rex (packet src,destination IP/MAC)
+- Please change MAC addresses to the corresponding MAC addresses of the VFs
 ```bash
 - nano /etc/trex_cfg.yaml
 ```
 ```bash
   port_info:
-      - dest_mac: BA:1D:1D:AE:8A:04  # MAC OF port 0 pod-sriov == same with the attached vf
-        src_mac:  FA:CA:84:FE:8B:A4  # MAC OF port 1 pod-sriov == same with the attached vf
+      - dest_mac: BA:1D:1D:AE:8A:04  # Check from MAC OF port 0 pod-sriov OR attached vf info from "ip link" command
+        src_mac:  FA:CA:84:FE:8B:A4  # Check from MAC OF port 1 pod-sriov OR attached vf info from "ip link" command
       - dest_mac: FA:CA:84:FE:8B:A4  # SRIOV scenario
         src_mac:  BA:1D:1D:AE:8A:04
 ```
