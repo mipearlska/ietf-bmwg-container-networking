@@ -488,14 +488,14 @@ spec:
 kubectl exec -it combined-pod-1 /bin/bash
 ./dpdk-l2fwd -n 4 -l 15-18 --socket-mem=0,1024 --single-file-segments --vdev=virtio_user0,path=/var/run/openvswitch/dpdkvhostuser0 -a 0000:af:0a.0 --no-pci -- -p 0x3 -T 10 --no-mac-updating
 
-./dpdk-l2fwd -n 4 -l 38-39 --socket-mem=0,1024 -a 0000:af:02.0 --vdev=virtio_user0,path=/var/run/openvswitch/dpdkvhostuser0 -- -p 0x3 -T 10 --no-mac-updating
+./dpdk-l2fwd -n 4 -l 15-18 -a 0000:af:02.0 --vdev=virtio_user0,path=/var/run/openvswitch/dpdkvhostuser0 -- -p 0x3 -T 10 --no-mac-updating
 ```
 
 ```
 kubectl exec -it combined-pod-2 /bin/bash
 ./dpdk-l2fwd -n 4 -l 38-39 --socket-mem=0,1024 --single-file-segments --vdev=virtio_user1,path=/var/run/openvswitch/dpdkvhostuser1 -a 0000:af:02.0 --no-pci -- -p 0x3 -T 10 --no-mac-updating
 
-./dpdk-l2fwd -n 4 -l 38-39 --socket-mem=0,1024 -a 0000:af:0a.0 --vdev=virtio_user1,path=/var/run/openvswitch/dpdkvhostuser1 -- -p 0x3 -T 10 --no-mac-updating
+./dpdk-l2fwd -n 4 -l 38-39 --vdev=virtio_user1,path=/var/run/openvswitch/dpdkvhostuser1 -a 0000:af:0a.0 -- -p 0x3 -T 10 --no-mac-updating
 ```
 
 # 6. T-Rex Traffic Generator 
