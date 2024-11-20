@@ -482,9 +482,9 @@ spec:
 ```
 
 # 5. Run the l2fwd inside pod
-** Consider to change numa cores (-l) (example 65-68, 38-39 below) if running fail. Because those numa cores are used by other processes currently. Check available NUMA by command "numactl -H" or "lscpu"
-** Use the correct PCI address of the SRIOV VF at (-a). Should be the SRIOV VF corresponding to the sriov-net defined in the Pod YAML file
-** In this example: enp175s0f0 VF PCI 0000:af:02.0 is corresponding to sriov-net-1 (configured in sriov configmap)
+- Consider to change numa cores (-l) (example 65-68, 38-39 below) if running fail. Because those numa cores are used by other processes currently. Check available NUMA by command "numactl -H" or "lscpu"
+- Use the correct PCI address of the SRIOV VF at (-a). Should be the SRIOV VF corresponding to the sriov-net defined in the Pod YAML file
+- In this example: enp175s0f0 VF PCI 0000:af:02.0 is corresponding to sriov-net-1 (configured in sriov configmap)
 
 ```
 kubectl exec -it combined-pod-1 /bin/bash
