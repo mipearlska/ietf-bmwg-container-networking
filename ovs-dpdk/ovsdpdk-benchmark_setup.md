@@ -261,6 +261,7 @@ ovs-appctl dpif/show
 
 # 3. T-Rex Traffic Generator
 ### 3.1. Config t-rex (packet src,destination IP/MAC)
+- Please change MAC to MAC addresses of the 2 NIC interfaces of the machine/server used for running the T-Rex app
 ```bash
 - nano /etc/trex_cfg.yaml
 ```
