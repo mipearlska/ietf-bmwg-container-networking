@@ -482,19 +482,17 @@ spec:
 ```
 
 # 5. Run the l2fwd inside pod
-** Consider to change numa core (-l 38-39) if running fail
+** Consider to change numa cores (-l) (example 65-68, 38-39 below) if running fail. Because those numa cores are used by other processes currently. Check available NUMA by command "numactl -H" or "lscpu"
+** Use the correct PCI address of the SRIOV VF at (-a). Should be the SRIOV VF corresponding to the sriov-net defined in the Pod YAML file
+** In this example: enp175s0f0 VF PCI 0000:af:02.0 is corresponding to sriov-net-1 (configured in sriov configmap)
 
 ```
 kubectl exec -it combined-pod-1 /bin/bash
-./dpdk-l2fwd -n 4 -l 15-18 --socket-mem=0,1024 --single-file-segments --vdev=virtio_user0,path=/var/run/openvswitch/dpdkvhostuser0 -a 0000:af:0a.0 --no-pci -- -p 0x3 -T 10 --no-mac-updating
-
-./dpdk-l2fwd -n 4 -l 15-18 -a 0000:af:02.0 --vdev=virtio_user0,path=/var/run/openvswitch/dpdkvhostuser0 -- -p 0x3 -T 10 --no-mac-updating
+./dpdk-l2fwd -n 4 -l 65-68 -a 0000:af:02.0 --vdev=virtio_user0,path=/var/run/openvswitch/dpdkvhostuser0 -- -p 0x3 -T 10 --no-mac-updating
 ```
 
 ```
 kubectl exec -it combined-pod-2 /bin/bash
-./dpdk-l2fwd -n 4 -l 38-39 --socket-mem=0,1024 --single-file-segments --vdev=virtio_user1,path=/var/run/openvswitch/dpdkvhostuser1 -a 0000:af:02.0 --no-pci -- -p 0x3 -T 10 --no-mac-updating
-
 ./dpdk-l2fwd -n 4 -l 38-39 --vdev=virtio_user1,path=/var/run/openvswitch/dpdkvhostuser1 -a 0000:af:0a.0 -- -p 0x3 -T 10 --no-mac-updating
 ```
 
