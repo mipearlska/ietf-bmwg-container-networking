@@ -17,7 +17,56 @@ https://github.com/huyng14/bmwg-container-network/blob/main/roles/sriov-nic-init
 7. (t-rex) Run benchmarking NDR app from t-rex
 
 
-# 1. Setup SR-IOV Virutal Functions at Worker DUT node
+# 1. Set up packet flow through OVS-DPDK
+
+dpdk-handling core2(lcore-mask), 8 dpdk pmd core 0-8(pmd-cpu-mask), afxdp pmd core 4,6 (pmd-rxq-affinity: queue 0 - core 4,6)
+create ovs-br0 bridge in OVS vswitch
+```bash
+/usr/local/share/openvswitch/scripts/ovs-ctl --no-ovs-vswitchd start
+/usr/local/bin/ovs-vsctl --no-wait set Open_vSwitch . other_config:dpdk-socket-mem="4096,0"
+/usr/local/bin/ovs-vsctl --no-wait set Open_vSwitch . other_config:dpdk-lcore-mask=0x2
+/usr/local/bin/ovs-vsctl --no-wait set Open_vSwitch . other_config:dpdk-init=true
+/usr/local/bin/ovs-vsctl --no-wait set Open_vSwitch . other_config:pmd-cpu-mask=0xff
+/usr/local/share/openvswitch/scripts/ovs-ctl --no-ovsdb-server --db-sock="/usr/local/var/run/openvswitch/db.sock" start
+/usr/local/bin/ovs-vsctl del-br ovs-br0
+/usr/local/bin/ovs-vsctl --may-exist add-br ovs-br0 -- set bridge ovs-br0 datapath_type=netdev
+```
+
+add OVS port (2 afxdp ports, 2 vhostuser ports)
+```bash
+ovs-vsctl add-port ovs-br0 dpdkvhostuser0 -- set Interface dpdkvhostuser0 type=dpdkvhostuser
+ovs-vsctl add-port ovs-br0 dpdkvhostuser1 -- set Interface dpdkvhostuser1 type=dpdkvhostuser
+```
+
+check ovs-bro bridge status
+```bash
+ovs-vsctl show
+ovs-ofctl show ovs-br0
+```
+```
+Example output:
+OFPT_FEATURES_REPLY (xid=0x2): dpid:00003cfdfeec4c88
+n_tables:254, n_buffers:0
+capabilities: FLOW_STATS TABLE_STATS PORT_STATS QUEUE_STATS ARP_MATCH_IP
+actions: output enqueue set_vlan_vid set_vlan_pcp strip_vlan mod_dl_src mod_dl_dst mod_nw_src mod_nw_dst mod_nw_tos mod_tp_src mod_tp_dst
+ 1(dpdkvhostuser0): addr:00:00:00:00:00:00
+     config:     0
+     state:      0
+     speed: 0 Mbps now, 0 Mbps max
+ 2(dpdkvhostuser1): addr:00:00:00:00:00:00
+     config:     0
+     state:      0
+     speed: 0 Mbps now, 0 Mbps max
+```
+
+add traffic routing flows between afxdp and vhostuser ports (get port number from show ovs-br0 command above)
+```bash
+ovs-ofctl --timeout 10 -O Openflow13 add-flow ovs-br0 in_port=1,idle_timeout=0,action=output:2
+ovs-ofctl --timeout 10 -O Openflow13 add-flow ovs-br0 in_port=2,idle_timeout=0,action=output:1
+ovs-ofctl dump-flows ovs-br0
+```
+
+# 2. Setup SR-IOV Virutal Functions at Worker DUT node
 ### Create VFs
 - Checking supported maximum VFs
 
@@ -110,12 +159,12 @@ Network devices using kernel driver
 0000:af:00.1 'Ethernet Controller XL710 for 40GbE QSFP+ 1583' if=enp175s0f1 drv=i40e unused=vfio-pci 
 ```
 
-# 2. Setup SRIOV plugin
+# 3. Setup SRIOV plugin
 
 Refer:
 https://github.com/k8snetworkplumbingwg/sriov-network-device-plugin#quick-start
 
-### 2.1 Build SRIOV CNI bin or get from 1_cnibin folder
+### 3.1 Build SRIOV CNI bin or get from 1_cnibin folder
 ```
 $ root@master ~/sriov-installer# git clone https://github.com/k8snetworkplumbingwg/sriov-cni.git
 $ cd sriov-cni
@@ -124,7 +173,7 @@ $ cp build/sriov /opt/cni/bin
 ```
 Copy the sriov cni bin to all nodes
 
-### 2.2 Configure SRIOV device plugin
+### 3.2 Configure SRIOV device plugin
 
 - Clone the plugin repo
 ```
@@ -136,7 +185,7 @@ cd sriov-network-device-plugin
  docker pull ghcr.io/k8snetworkplumbingwg/sriov-network-device-plugin:latest
 ```
 
-### 2.3 Modify the SR-IOV resource pool ConfigMap to fit with the DUT system then Apply the ConfigMap
+### 3.3 Modify the SR-IOV resource pool ConfigMap to fit with the DUT system then Apply the ConfigMap
 
 - Check DUT system NIC info
 ```
@@ -227,7 +276,7 @@ kubectl get configmaps -A
 > kube-system       **sriovdp-config**                       1      67s
 ```
 
-### 2.4.Apply the  SR-IOV network device plugin Daemonset
+### 3.4.Apply the  SR-IOV network device plugin Daemonset
 
 ```
 cd sriov-network-device-plugin/deployments
@@ -261,7 +310,7 @@ kubectl get pod -A
 ```
 
 
-### 2.5. Deploy SR-IOV and Userspace network attachment definition
+### 3.5. Deploy SR-IOV and Userspace network attachment definition
 
 ```
 kubectl create -f netAttach-sriov-dpdk1.yaml
@@ -363,55 +412,6 @@ kubectl get node worker -o json | jq '.status.allocatable'
   "memory": "15083532Ki",
   "pods": "110"
 }
-```
-
-# 3. Set up packet flow through OVS-DPDK
-
-dpdk-handling core2(lcore-mask), 8 dpdk pmd core 0-8(pmd-cpu-mask), afxdp pmd core 4,6 (pmd-rxq-affinity: queue 0 - core 4,6)
-create ovs-br0 bridge in OVS vswitch
-```bash
-/usr/local/share/openvswitch/scripts/ovs-ctl --no-ovs-vswitchd start
-/usr/local/bin/ovs-vsctl --no-wait set Open_vSwitch . other_config:dpdk-socket-mem="4096,0"
-/usr/local/bin/ovs-vsctl --no-wait set Open_vSwitch . other_config:dpdk-lcore-mask=0x2
-/usr/local/bin/ovs-vsctl --no-wait set Open_vSwitch . other_config:dpdk-init=true
-/usr/local/bin/ovs-vsctl --no-wait set Open_vSwitch . other_config:pmd-cpu-mask=0xff
-/usr/local/share/openvswitch/scripts/ovs-ctl --no-ovsdb-server --db-sock="/usr/local/var/run/openvswitch/db.sock" start
-/usr/local/bin/ovs-vsctl del-br ovs-br0
-/usr/local/bin/ovs-vsctl --may-exist add-br ovs-br0 -- set bridge ovs-br0 datapath_type=netdev
-```
-
-add OVS port (2 afxdp ports, 2 vhostuser ports)
-```bash
-ovs-vsctl add-port ovs-br0 dpdkvhostuser0 -- set Interface dpdkvhostuser0 type=dpdkvhostuser
-ovs-vsctl add-port ovs-br0 dpdkvhostuser1 -- set Interface dpdkvhostuser1 type=dpdkvhostuser
-```
-
-check ovs-bro bridge status
-```bash
-ovs-vsctl show
-ovs-ofctl show ovs-br0
-```
-```
-Example output:
-OFPT_FEATURES_REPLY (xid=0x2): dpid:00003cfdfeec4c88
-n_tables:254, n_buffers:0
-capabilities: FLOW_STATS TABLE_STATS PORT_STATS QUEUE_STATS ARP_MATCH_IP
-actions: output enqueue set_vlan_vid set_vlan_pcp strip_vlan mod_dl_src mod_dl_dst mod_nw_src mod_nw_dst mod_nw_tos mod_tp_src mod_tp_dst
- 1(dpdkvhostuser0): addr:00:00:00:00:00:00
-     config:     0
-     state:      0
-     speed: 0 Mbps now, 0 Mbps max
- 2(dpdkvhostuser1): addr:00:00:00:00:00:00
-     config:     0
-     state:      0
-     speed: 0 Mbps now, 0 Mbps max
-```
-
-add traffic routing flows between afxdp and vhostuser ports (get port number from show ovs-br0 command above)
-```bash
-ovs-ofctl --timeout 10 -O Openflow13 add-flow ovs-br0 in_port=1,idle_timeout=0,action=output:2
-ovs-ofctl --timeout 10 -O Openflow13 add-flow ovs-br0 in_port=2,idle_timeout=0,action=output:1
-ovs-ofctl dump-flows ovs-br0
 ```
 
 # 4. Deploy 2 l2fwd pods
