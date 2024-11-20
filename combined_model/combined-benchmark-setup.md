@@ -8,11 +8,11 @@ https://github.com/huyng14/bmwg-container-network/blob/main/roles/sriov-nic-init
 ## High version T-Rex might not compatible with SRIOV VF, cause traffic to be dropped (our test failed with v2.92). Consider to use v2.73 or lower
 
 # Benchmarking Flow
-1. (worker) Setup SRIOV-VF
-2. (master) Apply SRIOV plugin configmap, daemonset, network attachment definition Userspace and SRIOV
-3. (worker) Startup OVS and setup path
-4. (master) Deploy 2 pods 
-5. (master) Kubectl exec into pod then run dpdk-l2fwd app
+1. (worker) Startup OVS and setup ports (only 2 dpdkvhostuser) and datapath between 2 dpdkvhostuser
+2. (worker) Setup 2 VFs from 2 benchmark NIC interfaces
+3. (master) Apply SRIOV Plugin configmap, SRIOV Plugin daemonset, 3 Network Attachment Definitions (2 SRIOV and 1 Userspace)
+4. (master) Deploy 2 pods (each pod is configured to use 1 SRIOV interface and 1 Userspace interface)
+5. (master) Kubectl exec into 2 pods then run dpdk-l2fwd app
 6. (t-rex) Config traffic profile then send traffic from t-rex
 7. (t-rex) Run benchmarking NDR app from t-rex
 
@@ -164,7 +164,7 @@ Network devices using kernel driver
 Refer:
 https://github.com/k8snetworkplumbingwg/sriov-network-device-plugin#quick-start
 
-### 3.1 Build SRIOV CNI bin or get from 1_cnibin folder
+### 3.1 Build SRIOV CNI bin or get directly from this repo 1_cnibin folder
 ```
 $ root@master ~/sriov-installer# git clone https://github.com/k8snetworkplumbingwg/sriov-cni.git
 $ cd sriov-cni
@@ -173,7 +173,7 @@ $ cp build/sriov /opt/cni/bin
 ```
 Copy the sriov cni bin to all nodes
 
-### 3.2 Configure SRIOV device plugin
+### 3.2 Get SRIOV device plugin
 
 - Clone the plugin repo
 ```
@@ -187,7 +187,7 @@ cd sriov-network-device-plugin
 
 ### 3.3 Modify the SR-IOV resource pool ConfigMap to fit with the DUT system then Apply the ConfigMap
 
-- Check DUT system NIC info
+- Check DUT system NIC info at worker node
 ```
 > [root@worker ~]# lspci -vmmnn |grep -i ethernet
 > Class:  Ethernet controller [0200]
@@ -209,7 +209,7 @@ cd sriov-network-device-plugin
 > Class:  Ethernet controller [0200]
 > Device: Ethernet Virtual Function 700 Series [154c]
 ```
-- Modify config-map.yaml
+- Modify corresponding "resourceList" in config-map.yaml
 ```
 cd sriov-network-device-plugin/deployments
 nano config-map.yaml
@@ -358,7 +358,9 @@ spec:
   "spoofchk": "off",
   "trust": "on"
 }'
-
+```
+Modify the corresponding OVS bridgeName from worker node
+```
 cat net-attach-userspace.yaml
 
 
@@ -415,6 +417,9 @@ kubectl get node worker -o json | jq '.status.allocatable'
 ```
 
 # 4. Deploy 2 l2fwd pods
+- Annotations: 1 from Userspace and 1 from SRIOV Network Attachment Definitions
+- Userspace dpdkvhostuser directory needed to be mounted as a volume
+- Each Pod uses 1 different SRIOV VF (add to the "requests" field the corresponding SRIOV resourceName from SRIOV Network Attachment Definition)
 
 ```
 kubectl apply -f combined-pod1.yaml
