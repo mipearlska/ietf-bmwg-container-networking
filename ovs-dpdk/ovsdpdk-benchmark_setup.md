@@ -63,7 +63,7 @@ create ovs-br0 bridge in OVS vswitch
 /usr/local/bin/ovs-vsctl --may-exist add-br ovs-br0 -- set bridge ovs-br0 datapath_type=netdev
 ```
 
-add OVS port (2 afxdp ports, 2 vhostuser ports)
+add OVS port (2 NIC interface ports, 2 vhostuser ports)
 ```bash
 ovs-vsctl add-port ovs-br0 gigaf0/0 -- set Interface gigaf0/0 type=dpdk options:dpdk-devargs=0000:af:00.0
 ovs-vsctl add-port ovs-br0 gigaf0/1 -- set Interface gigaf0/1 type=dpdk options:dpdk-devargs=0000:af:00.1
@@ -102,7 +102,7 @@ actions: output enqueue set_vlan_vid set_vlan_pcp strip_vlan mod_dl_src mod_dl_d
      speed: 0 Mbps now, 0 Mbps max
 ```
 
-add traffic routing flows between afxdp and vhostuser ports (get port number from show ovs-br0 command above)
+add traffic routing flows between each NIC interface and vhostuser ports (get port number from show ovs-br0 command above)
 ```bash
 ovs-ofctl --timeout 10 -O Openflow13 add-flow ovs-br0 in_port=1,idle_timeout=0,action=output:3
 ovs-ofctl --timeout 10 -O Openflow13 add-flow ovs-br0 in_port=3,idle_timeout=0,action=output:1
@@ -122,7 +122,7 @@ Example output:
 # 2. L2FWD application
 
 ### Userspace CNI Network Attachment Definition
-
+- Get the corresponding OVS bridgeName from above (ovs-br0 in this example)
 ```
 [root@master ovs-dpdk]# cat userspace-ovs-CRD.yaml
 apiVersion: "k8s.cni.cncf.io/v1"
@@ -166,6 +166,8 @@ Image: (dpdk app ver 22.11, ubuntu 22.04)
 ```
 docker pull mipearlska/dpdk-app-ubuntu
 ```
+- Annotations: 2 Userspace Network Attachment Definition's name
+- Required Volume to mount: podinfo (default), hugepages (get from worker node), OVS dpdkvhostuser directory (get from worker node)
 ```
 root@master ~/t/u/ovs-dpdk# cat ovs-pod.yaml
 apiVersion: v1
@@ -220,6 +222,11 @@ spec:
 ```
 
 ### Running l2fwd application
+- vdev: 2 dpdkvhostuser port at OVS vswitch
+- l: CPU NUMA cores (check available NUMA from worker by command "numactl -H"/"lspcu")
+- n: Number of memory channels
+- T: refreshing forwarding status frequency
+- Others: please refer from https://doc.dpdk.org/guides/linux_gsg/linux_eal_parameters.html
 ```bash
 cd $DPDK_DIRECTORY/build/examples
 
