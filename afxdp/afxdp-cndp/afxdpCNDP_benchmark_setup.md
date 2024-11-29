@@ -12,14 +12,15 @@ apt install -y iproute2
 apt install -y net-tools
 ```
 # Benchmarking Flow
-0. (t-rex) Config t-rex traffic profile (/etc/trex_cfg.yaml) as below then start t-rex. Not send any traffic yet
+
 1. (master) Apply afxdp plugin daemonsets from master (check kube-afxdp-device-plugin Running at both nodes and afxdp cni bin inside /opt/cni/bin at both nodes)
 2. (master) Apply network attachment definition (check kubectl get net-attach-def)
 3. (worker) Config NIC interface at DUT worker node (promisc, combined 1)
 4. (master) Deploy pod (build cndp pod image with proper fwd.jsonc configuration first if not done yet)
 5. (master) Kubectl exec into pod then run cndpfwd app
-6. (t-rex) Send traffic from t-rex
-7. (t-rex) Run benchmarking NDR app from t-rex
+6. (t-rex) Config t-rex traffic profile (/etc/trex_cfg.yaml) as below then start t-rex. Not send any traffic yet
+7. (t-rex) Send traffic from t-rex
+8. (t-rex) Run benchmarking NDR app from t-rex
 
 # 1. Set up AFXDP-k8S Plugin (master node)
 ```
