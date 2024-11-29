@@ -23,14 +23,15 @@ sudo make install
 ```
 
 # Benchmarking Flow
-0. (t-rex) Config t-rex traffic profile (/etc/trex_cfg.yaml) as below then start t-rex. Not send any traffic yet
-1. (master) Apply network attachment definition (check kubectl get net-attach-def)
-2. (worker) Config NIC interface at DUT worker node (combined 1)
-3. (worker) Start OVS and config OVS flow
+
+1. (worker) Config NIC interface at DUT worker node (combined 1)
+2. (worker) Start OVS and config OVS flow
+3. (master) Apply network attachment definition (check kubectl get net-attach-def)
 4. (master) Deploy pod 
 5. (master) Kubectl exec into pod then run dpdk-l2fwd app
-6. (t-rex) Send traffic from t-rex
-7. (t-rex) Run benchmarking NDR app from t-rex
+6. (t-rex) Config t-rex traffic profile (/etc/trex_cfg.yaml) as below then start t-rex. Not send any traffic yet
+7. (t-rex) Send traffic from t-rex
+8. (t-rex) Run benchmarking NDR app from t-rex
 
 # 1. Set up packet flow through OVS-DPDK
 Please use ethtool -l and ethtool -g to check default settings first. So that after testing, you can revert "combined, rx, tx" settings to default
