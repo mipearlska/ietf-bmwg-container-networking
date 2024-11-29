@@ -33,7 +33,7 @@ sudo make install
 7. (t-rex) Send traffic from t-rex
 8. (t-rex) Run benchmarking NDR app from t-rex
 
-# 1. Set up packet flow through OVS-DPDK
+# 1. Config NIC interface then Set up packet flow through OVS-DPDK
 Please use ethtool -l and ethtool -g to check default settings first. So that after testing, you can revert "combined, rx, tx" settings to default
 Default example:
 ```bash
