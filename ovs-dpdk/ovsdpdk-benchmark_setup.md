@@ -22,8 +22,8 @@ sudo make install
 
 # Benchmarking Flow
 
-1. (master) Apply network attachment definition (check kubectl get net-attach-def)
-2. (worker) Start OVS and config OVS flow
+1. (worker) Start OVS and config OVS flow
+2. (master) Apply network attachment definition (check kubectl get net-attach-def)
 3. (master) Deploy pod 
 4. (master) Kubectl exec into pod then run dpdk-l2fwd app
 5. (t-rex) Config t-rex traffic profile (/etc/trex_cfg.yaml) as below then start t-rex. Not send any traffic yet
