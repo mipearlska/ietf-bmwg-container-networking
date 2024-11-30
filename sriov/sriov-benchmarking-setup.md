@@ -2,7 +2,7 @@ Refer:
 https://github.com/huyng14/bmwg-container-network/blob/main/roles/sriov-nic-init/tasks/main.yml
 
 # Prequisites
-## Docker, Kubernetes cluster v1.23.5, Multus CNI, UserspaceCNI, SRIOV plugin (setup below)
+## Docker, Kubernetes cluster v1.23.5, Multus CNI, SRIOV CNI plugin (setup below)
 ## Userspace and SRIOV CNI bin must be copied at /opt/cni/bin in all nodes
 ## Setup iommu (guide in 00_PREQUISITES)
 ## High version T-Rex might not compatible with SRIOV VF, cause traffic to be dropped (our test failed with v2.92). Consider to use v2.73 or lower
