@@ -55,10 +55,10 @@ dpdk-handling core2(lcore-mask), 8 dpdk pmd core 0-8(pmd-cpu-mask), afxdp pmd co
 create ovs-br0 bridge in OVS vswitch
 ```bash
 /usr/local/share/openvswitch/scripts/ovs-ctl --no-ovs-vswitchd start
-/usr/local/bin/ovs-vsctl --no-wait set Open_vSwitch . other_config:dpdk-socket-mem="4096,0"
-/usr/local/bin/ovs-vsctl --no-wait set Open_vSwitch . other_config:dpdk-lcore-mask=0x2
+/usr/local/bin/ovs-vsctl --no-wait set Open_vSwitch . other_config:dpdk-socket-mem="4096,4096"
+/usr/local/bin/ovs-vsctl --no-wait set Open_vSwitch . other_config:dpdk-lcore-mask=0x4
 /usr/local/bin/ovs-vsctl --no-wait set Open_vSwitch . other_config:dpdk-init=true
-/usr/local/bin/ovs-vsctl --no-wait set Open_vSwitch . other_config:pmd-cpu-mask=0xff
+/usr/local/bin/ovs-vsctl --no-wait set Open_vSwitch . other_config:pmd-cpu-mask=0xF0
 /usr/local/share/openvswitch/scripts/ovs-ctl --no-ovsdb-server --db-sock="/usr/local/var/run/openvswitch/db.sock" start
 /usr/local/bin/ovs-vsctl del-br ovs-br0
 /usr/local/bin/ovs-vsctl --may-exist add-br ovs-br0 -- set bridge ovs-br0 datapath_type=netdev
