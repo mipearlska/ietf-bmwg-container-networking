@@ -312,7 +312,7 @@ spec:
 
 ```
 sudo yum install jq -y
-kubectl get node worker41 -o json | jq '.status.allocatable'
+kubectl get node worker -o json | jq '.status.allocatable'
 
 
 {
