@@ -231,11 +231,7 @@ spec:
 ```bash
 cd $DPDK_DIRECTORY/build/examples
 
-./dpdk-l2fwd -n 4 -l 15-18 --single-file-segments --vdev=virtio_user0,path=/var/run/openvswitch/dpdkvhostuser0 --vdev=virtio_user1,path=/var/run/openvswitch/dpdkvhostuser1 --no-pci -- -p 0x3 -T 10 --no-mac-updating
-
-./dpdk-l2fwd -n 4 -l 15-18 --single-file-segments --vdev=virtio_user0,path=/usr/local/var/run/openvswitch/dpdkvhostuser0 --vdev=virtio_user1,path=/usr/local/var/run/openvswitch/dpdkvhostuser1 --no-pci -- -p 0x3 -T 10 --no-mac-updating
-
-l2fwd -n 4 -l 15-18 --single-file-segments --vdev=virtio_user0,path=/var/run/openvswitch/dpdkvhostuser0 --vdev=virtio_user1,path=/var/run/openvswitch/dpdkvhostuser1 --no-pci -- -p 0x3 -T 10 --no-mac-updating
+./dpdk-l2fwd -n 4 -l 10-11 --single-file-segments --vdev=virtio_user0,path=/var/run/openvswitch/dpdkvhostuser0 --vdev=virtio_user1,path=/var/run/openvswitch/dpdkvhostuser1 --no-pci -- -p 0x3 -T 10 --no-mac-updating
 ```
 
 
