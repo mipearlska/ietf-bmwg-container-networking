@@ -1,0 +1,1266 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!-- This template is for creating an Internet Draft using xml2rfc,
+    which is available here: http://xml.resource.org. -->
+<!DOCTYPE rfc SYSTEM "rfc2629-xhtml.ent">
+<?xml-stylesheet type='text/xsl' href='rfc2629.xslt' ?>
+<!-- used by XSLT processors -->
+<!-- For a complete list and description of processing instructions (PIs), 
+    please see http://xml.resource.org/authoring/README.html. -->
+<rfc
+      xmlns:xi="http://www.w3.org/2001/XInclude"
+      category="info"
+      docName="draft-ietf-bmwg-containerized-infra-08"
+      ipr="trust200902"
+      obsoletes=""
+      updates=""
+      submissionType="IETF"
+      xml:lang="en"
+      tocInclude="true"
+      tocDepth="4"
+      symRefs="true"
+      sortRefs="true"
+      version="3">
+  <!-- xml2rfc v2v3 conversion 2.38.1 -->
+  <!-- category values: std, bcp, info, exp, and historic
+    ipr values: trust200902, noModificationTrust200902, noDerivativesTrust200902,
+       or pre5378Trust200902
+    you can add the attributes updates="NNNN" and obsoletes="NNNN" 
+    they will automatically be output with "(if approved)" -->
+
+ <!-- ***** FRONT MATTER ***** -->
+ <front>
+    <title abbrev="Benchmarking Containerized Infra">
+    Considerations for Benchmarking Network Performance in Containerized Infrastructures
+    </title>
+	<seriesInfo name="Internet-Draft" value="draft-ietf-bmwg-containerized-infra-08"/>
+        
+    <author initials="M. N." surname="Tran" fullname="Minh-Ngoc Tran">
+       <organization abbrev="ETRI">Electronics and Telecommunications Research Institute</organization>
+       <address>
+         <postal>
+           <street>218 Gajeong-ro, Yuseong-gu</street>
+           <city>Daejeon</city>
+           <code>34129</code>
+           <country>Republic of Korea</country>
+         </postal>
+         <phone>+82 1073874420</phone>
+         <email>mipearlska@etri.re.kr</email>
+       </address>
+    </author>
+
+    <author initials="N." surname="Ko" fullname="Namseok Ko">
+       <organization abbrev="ETRI">Electronics and Telecommunications Research Institute</organization>
+       <address>
+         <postal>
+           <street>218 Gajeong-ro, Yuseong-gu</street>
+           <city>Daejeon</city>
+           <code>34129</code>
+           <country>Republic of Korea</country>
+         </postal>
+         <phone>+82 428605560</phone>
+         <email>nsko@etri.re.kr</email>
+       </address>
+    </author>
+
+    <author initials="S." surname="Rao" fullname="Sridhar Rao">
+       <organization> The Linux Foundation </organization>
+       <address>
+         <postal>
+           <street>B801, Renaissance Temple Bells, Yeshwantpur</street>
+           <city>Bangalore</city>
+           <code>560022</code>
+           <country>India</country>
+         </postal>
+         <phone>+91 9900088064</phone>
+         <email>srao@linuxfoundation.org</email>
+       </address>
+    </author>
+
+    <author initials="J." surname="Lee" fullname="Jangwon Lee">
+       <organization> Soongsil University </organization>
+       <address>
+         <postal>
+           <street>369, Sangdo-ro, Dongjak-gu</street>
+           <city>Seoul</city>
+           <code>06978</code>
+           <country>Republic of Korea</country>
+         </postal>
+         <phone>+82 1074484664</phone>
+         <email>jangwon.lee@dcn.ssu.ac.kr</email>
+       </address>
+    </author>
+
+    <author initials="Y." surname="Kim" fullname="Younghan Kim">
+       <organization> Soongsil University </organization>
+       <address>
+         <postal>
+           <street>369, Sangdo-ro, Dongjak-gu</street>
+           <city>Seoul</city>
+           <code>06978</code>
+           <country>Republic of Korea</country>
+         </postal>
+         <phone>+82 1026910904</phone>
+         <email>younghak@ssu.ac.kr</email>
+       </address>
+    </author>
+    <date year="2025"/>
+
+    <area>Operations and Management Area</area>
+	 <workgroup>Benchmarking Methodology Working Group</workgroup>
+
+       
+<!-- [rfced] Please insert any keywords (beyond those that appear in
+the title) for use on http://www.rfc-editor.org/rfcsearch.html. -->
+
+    <keyword>Internet-Draft</keyword>       
+
+    <abstract>
+       <t>Recently, the Benchmarking Methodology Working Group extended the laboratory characterization from physical network functions (PNFs) to virtual network functions (VNFs). With the ongoing shift in network function implementation from virtual machine-based to container-based approaches, system configurations and deployment scenarios for benchmarking will be partially influenced by how resource allocation and network technologies are specified for containerized network functions. This draft outlines additional considerations for benchmarking network performance when network functions are containerized and executed on general-purpose hardware.</t>
+    </abstract>
+ </front>
+
+ <middle>
+
+   <section numbered="true" toc="default">
+     <name>Introduction</name>
+     <t>
+        The Benchmarking Methodology Working Group (BMWG) has recently expanded its benchmarking scope from Physical Network Functions (PNFs), running on dedicated hardware systems, to Network Function Virtualization (NFV) infrastructure and Virtualized Network Functions (VNFs). <xref target="RFC8172" /> described considerations for configuring NFV infrastructure and benchmarking metrics, and <xref target="RFC8204" /> provided guidelines for benchmarking virtual switches that connect VNFs in the Open Platform for NFV (OPNFV).
+     </t>
+
+     <t>
+	      Recently, NFV infrastructure has evolved to include a lightweight virtualized platform known as containerized infrastructure. Most benchmarking methodologies and configuration parameters specified in <xref target="RFC8172" /> and <xref target="RFC8204" /> can also be applied to benchmark container networking. However, significant architectural differences between virtual machine (VM)-based and container-based infrastructures necessitate additional considerations.
+     </t>
+
+     <t>
+        In terms of virtualization method, Containerized Network Functions (CNFs) utilize host Operating System (OS) virtualization rather than hypervisor-based hardware virtualization, as in VM-based infrastructures. Unlike VMs, containers do not have separate hardware or kernel instances. CNFs share the same kernel space on the host system, with resources logically isolated in different namespaces. Consequently, benchmarking container network performance may require different resource configuration settings.
+     </t>
+
+     <t>
+        In terms of networking, a Container Network Interface (CNI) plugin is required to route traffic between containers isolated in different network namespaces. When a pod or container is instantiated, it initially has no network connectivity. The CNI plugin inserts a network interface into the container’s isolated network namespace and performs tasks necessary to connect the host and container network namespaces. It also allocates an IP address to the interface and configures routing consistent with the IP address management plugin. Different CNI plugins employ various networking technologies to implement these connections. Based on the networking technologies used by the plugins and how packets are processed or accelerated through the host’s kernel-space and/or user-space, these plugins can be categorized into different container networking models. These models should be taken into account when benchmarking container network performance.
+      </t>
+    
+   </section>
+
+   <section numbered="true" toc="default">
+   <name>Requirements Language</name>
+     <t>
+        The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED",  "MAY", and "OPTIONAL" in this document are to be interpreted as described in <xref target="RFC2119" />. 
+     </t>
+    
+   </section>
+
+   <section numbered="true" toc="default">
+   <name>Terminology</name>
+     <t>
+        This document uses the terminology described in <xref target="RFC8172" />, <xref target="RFC8204" />, <xref target="ETSI-TST-009" />.
+     </t>
+
+     <t>
+        Besides, with the growing proliferation and popularity of Kubernetes as a container orchestration platform, this document adopts Kubernetes terminologies to describe general containerized infrastructure.
+     </t>
+
+     <t>
+        A Pod is defined as the basic and smallest unit of orchestration and management in Kubernetes. It can host multiple containers, sharing storage and network resources. Typically, each CNF is deployed as a container within a single pod. In this document, the terms container and pod are used interchangeably.
+     </t>
+
+     <t>
+        The Container Network Interface (CNI) plugin is a framework that dynamically creates and configures networks for containers.
+     </t>
+    
+   </section>
+
+   <section numbered="true" toc="default">
+   <name>Scope</name>
+     <t>
+        The primary scope of this document is to fill in the gaps identified in BMWG's previous NFV benchmarking consideration works (<xref target="RFC8172" /> and <xref target="RFC8204" />) when applied to containerized NFV infrastructure. The first gap involves different network models and topologies configured by container network interfaces, particularly the extended Berkeley Packet Filter model, which was not covered in earlier documents. The second gap relates to resource configurations for containers. This document investigates these gaps as additional considerations for benchmarking NFV infrastructure.
+     </t>
+
+     <t>
+        It is important to note that apart from these unique characteristics, the benchmarking tests and assessment methodologies defined in the aforementioned RFCs can be equally applied to containerized infrastructure from a general NFV perspective.
+     </t>
+    
+   </section>
+
+   <section numbered="true" toc="default">
+     <name>Benchmarking Considerations</name>
+      <section anchor="BM_Networking_Models" title="Networking Models">  
+        <t>
+	       Compared to VNFs, the selected CNI plugin is a critical software parameter for benchmarking containerized infrastructure. Different CNI plugins configure various network architectures for CNFs in terms of network interfaces, virtual switch usage, and packet acceleration techniques. This section categorizes container networking models based on the characteristics of CNI plugins.
+	     </t>
+
+        <t>
+         Note that the CNI plugins mentioned in each category are notable examples. Other existing CNI plugins can also fall into one of the categories described in this section.
+       </t>
+
+       <t>
+         To ensure repeatability of the container network setup for benchmarking each networking model, Kubernetes is recommended as the container orchestration platform. Kubernetes supports multiple CNIs, enabling benchmarking across all the networking models discussed in this document. In addition to installing the appropriate CNI, underlay network configurations of the Device Under Test/System Under Test (DUT/SUT) may be required, depending on the networking model. These details are outlined in each networking model sub-section.
+       </t>
+	
+        <section anchor="Kernel-space" title="Normal non-Acceleration Networking Model">
+          <figure anchor="Kernel-models" title="Example architecture of the Normal non-Acceleration Networking Model">
+            <artwork align="left" name="" type="" alt=""><![CDATA[
+  +------------------------------------------------------------------+
+  | User Space                                                       |
+  | +-------------+                                +-------------+   |
+  | |     CNF     |                                |     CNF     |   |
+  | | +---------+ |                                | +---------+ |   |
+  | | | fwd app | |                                | | fwd app | |   |
+  | | +-----^---+ |                                | +-----^---+ |   |
+  | |       |     |                                |       |     |   |
+  | | +---- v---+ |                                | +-----v---+ |   |
+  | | |  Linux  | |                                | |  Linux  | |   |
+  | | | nw stack| |                                | | nw stack| |   |
+  | | +-----^---+ |                                | +-----^---+ |   |
+  | |       |     |                                |       |     |   | 
+  | |   +---v---+ |                                |   +---v---+ |   |
+  | +---| veth  |-+                                +---| veth  |-+   |
+  |     +---^---+                                      +---^---+     |
+  |         |                                              |         |
+  |         |     +----------------------------------+     |         |
+  |         |     |                                  |     |         |   
+  |         |     |  Networking Controller / Agent   |     |         |
+  |         |     |                                  |     |         |
+  |         |     +-----------------^^---------------+     |         |
+  ----------|-----------------------||---------------------|----------
+  |     +---v---+                   ||                 +---v---+     |
+  |  +--|  veth |-------------------vv-----------------|  veth |--+  |
+  |  |  +-------+     Switching/Routing Component      +-------+  |  |
+  |  |         (Kernel Routing Table, OVS Kernel Datapath,        |  |
+  |  |         Linux Bridge, MACVLAN/IPVLAN sub-interfaces)       |  |     
+  |  |                                                            |  |
+  |  +-------------------------------^----------------------------+  |
+  |                                  |                               |
+  | Kernel Space         +-----------v----------+                    |
+  +----------------------|          NIC         |--------------------+
+                         +----------------------+
+
+                        ]]></artwork>
+          </figure>	
+
+          <t>
+	           <xref target="Kernel-models" /> illustrates the Normal Non-Acceleration Networking Model, which is typically deployed in general container infrastructure environments. A single CNI is used to configure the container network. The CNF operates in a separate network namespace from the host. The CNI configures virtual ethernet (veth) interface pairs to create a tunnel connecting these two separate network namespaces. The veth interface on the CNF side attaches to the vanilla Linux network stack within the CNF, while the veth interface on the host side attaches to the switching/routing component in the host kernel space.
+          </t>
+
+          <t> 
+            The kernel's switching/routing component varies depending on the implemented CNI. In the case of Calico, it is the direct point-to-point attachment to the host namespace, using the Kernel routing table for routing between containers. For Flannel, it is the Linux Bridge. In the case of MACVLAN/IPVLAN, it is the corresponding virtual sub-interfaces. In the case of Open vSwitch (OVS) <xref target="OVS" />, when configured with the Kernel Datapath, the first packet of the 'non-matching' flow can be sent to the user-space networking controller/agent (ovs-switchd) for dynamic forwarding decision. 
+	        </t>
+
+	        <t>
+	           In this model, data packets are processed in the host kernel's network stack before being transferred to the CNF running in the user-space. This applies to both pod-to-external and pod-to-pod traffic. Additionally, data packets traverse through the CNF's network stack, moving between the application and the CNF's veth interface. This design results in lower networking performance compared to other models that leverage packet acceleration techniques (described in subsequent sections). Kernel-space vSwitch models are listed below:
+	        </t>
+	
+	        <t>
+	           o Flannel Network <xref target="Flannel" />, Calico <xref target="Calico" />, OVS (OpenvSwitch) <xref target="OVS" />, OVN (Open Virtual Network) <xref target="OVN" />, MACVLAN, IPVLAN
+	        </t>
+
+	        <t>
+	           The Normal Non-Acceleration Networking Model is the basic and default containerized networking model for general container deployment use cases. It can be set up by applying the appropriate YAML configuration file for the chosen CNI to the containerized cluster.
+	        </t>
+        </section>
+	       
+      <section anchor="acceleration" title="Acceleration Networking Models">
+
+        <t>
+           Acceleration Networking Models includes different types of container networking model that leverage different packet acceleration techniques to address the performance bottlenecks of the kernel networking stack. Compared to the Normal Non-Acceleration Networking Model, which requires only a single CNI, Acceleration Networking Models typically require at least two CNIs to configure multiple network interfaces for each CNF. In general, a default CNF network interface is configured by a standard normal non-Acceleration CNI to handle IP address management and control plane traffic, such as CNF management. Additional network interfaces are configured using CNIs that support packet acceleration techniques. These accelerated interfaces are dedicated to high-performance application traffic transmission. Multus CNI  is a specialized CNI plugin that facilitates the attachment of multiple network interfaces to a CNF. In the Multus CNI configuration, the default CNI for IP address management (IPAM) and the chosen CNI for packet acceleration must be explicitly defined.
+        </t>
+
+        <t>
+           The Acceleration networking model architecture and characteristic differences caused by different implemented packet acceleration techniques are discussed below. For simplicity and clarity, the example architecture figures for these models focus exclusively on the accelerated application data path corresponding to the CNF network interface enabled by the CNI for packet acceleration. The CNF management data path, handled by the default CNI, is omitted from these illustrations.
+        </t>
+	      <section anchor="User-space" title="User-space Acceleration Model">
+          <figure anchor="User-models" title="Example architecture of the User-Space Acceleration Model">
+            <artwork align="left" name="" type="" alt=""><![CDATA[
+  +------------------------------------------------------------------+
+  | User Space                                                       |
+  |   +---------------+                          +---------------+   |
+  |   |      CNF     +|-------+          +-------|+     CNF      |   |
+  |   |              |default |          |default |              |   |
+  |   |  +---------+ |CNI eth |          |CNI eth | +---------+  |   |
+  |   |  | fwd app | +|-------+          +-------|+ | fwd app |  |   |
+  |   |  +----|----+  |                          |  +----|----+  |   |
+  |   | +-----|-----+ |    +-----------------+   | +-----|-----+ |   |
+  |   | |  virtio   | |    |    Networking   |   | |  virtio   | |   |
+  |   +-|  /memif   |-+    | Controller/Agent|   +-|  /memif   |-+   |
+  |     +-----^-----+      +-------^^--------+     +-----^-----+     |
+  |           |                    ||                    |           |
+  |           |                    ||                    |           |
+  |     +-----v-----+              ||              +-----v-----+     |
+  |     | vhost-user|              ||              | vhost-user|     |
+  |  +--|  / memif  |--------------vv--------------|  / memif  |--+  |
+  |  |  +-----------+                              +-----------+  |  |   
+  |  |             User space DPDK-supported vSwitch              |  |
+  |  |                      +--------------+                      |  |
+  |  +----------------------|      PMD     |----------------------+  |
+  |                         |              |                         |
+  |                         +-------^------+                         |
+  ----------------------------------|---------------------------------
+  |                                 |                                |
+  |                                 |                                |
+  |                                 |                                |
+  | Kernel Space         +----------V-----------+                    |
+  +----------------------|          NIC         |--------------------+
+                         +----------------------+
+
+                        ]]></artwork>
+          </figure>
+	        <t>
+	           <xref target="User-models" /> shows the user-space vSwitch model, where data packets from the physical network port bypass the kernel-space network stack and are delivered directly to the vSwitch running in user-space. This model is commonly regarded as a form of Data Plane Acceleration (DPA) technology, as it achieves higher packet processing rates compared to kernel-space networks, which are constrained by limited packet throughput. To implement this user-space acceleration networking model, the user-space vSwitch must support Data Plane Development Kit (DPDK) libraries. DPDK enables the user-space vSwitch to utilize Poll Mode Drivers (PMDs) to poll incoming packets directly from NIC queues and transfer them to the user-space vSwitch.
+	        </t>
+
+	        <t>
+	           Userspace CNI <xref target="userspace-cni" />  is required to create interfaces for packet transfer between the user-space vSwitch and pods. This CNI establishes shared-memory interfaces to enhance packet transfer performance. The two common types of shared-memory interfaces are vhost-user and memif. In case of vhost-user, the CNI creates a virtio PMD in the pod and links it to the vhost-user port in the DPDK-based vSwitch. In case of memif, the CNI creates a memif PMD in the pod and links it to the memif port in the DPDK-based vSwitch.
+	        </t>
+
+	        <t>
+	           User-space Acceleration models are listed below based on the current available DPDK-based user-space vSwitches:
+	        </t>
+
+	        <t>
+	           o OVS-DPDK <xref target="ovs-dpdk" />, VPP <xref target="vpp" />
+	        </t>
+
+	        <t>
+	           To set up the user-space acceleration model, mapping between NIC ports, vSwitch ports, and pod interfaces is required. For packet transfer between the NIC and vSwitch, DPDK libraries and DPDK-based user-space vSwitches need to be installed. Then, selected NIC ports for the user-space acceleration network must be bound to the vSwitch's DPDK PMD using a DPDK-compatible driver such as VFIO or UIO. For packet transfer between the vSwitch and pods, vhost-user/memif ports need to be added to the vSwitch via port configurations. Traffic routing paths between NIC polling PMD ports and these vhost-user/memif ports should be configured on the vSwitch. Finally, Userspace CNI should be installed and configured to map the pods' virtio/memif interfaces to the vSwitch's vhost-user/memif ports.
+	        </t>
+        </section>
+
+        <section anchor="ebpf" title="eBPF Acceleration Model"> 
+          <figure anchor="Fig-ebpf-tc" title="Example architecture of the eBPF Acceleration Model - Forwarding via traffic control hook">
+            <artwork align="left" name="" type="" alt=""><![CDATA[
+  +------------------------------------------------------------------+
+  | User Space                                                       |
+  |    +----------------+                     +----------------+     |
+  |    |       CNF      |                     |       CNF      |     |
+  |    | +------------+ |                     | +------------+ |     |
+  |    | |  fwd app   | |                     | |  fwd app   | |     |
+  |    | +-----^------+ |                     | +------^-----+ |     |
+  |    |       |        |                     |        |       |     |
+  |    | +-----v------+ |                     | +------v-----+ |     |
+  |    | |   Linux    | |                     | |    Linux   | |     |
+  |    | |  nw stack  | |                     | |  nw stack  | |     |
+  |    | +-----^------+ |                     | +------^-----+ |     |
+  |    |       |        |                     |        |       |     |
+  |    | +-----v------+ |                     | +------v-----+ |     |
+  |    +-|    eth     |-+                     +-|     eth    |-+     |
+  |      +-----^------+                         +------^-----+       |
+  |            |                                       |             |
+  -------------|---------------------------------------|--------------
+  |      +-----v-------+                        +-----v-------+      |
+  |      |  +------+   |                        |  +------+   |      |
+  |      |  | eBPF |   |                        |  | eBPF |   |      |
+  |      |  +------+   |                        |  +------+   |      |
+  |      | veth tc hook|                        | veth tc hook|      |
+  |      +-----^-------+                        +------^------+      |
+  |            |                                       |             |
+  |            |   +-------------------------------+   |             |
+  |            |   |                               |   |             |
+  |            |   |       Networking Stack        |   |             |
+  |            |   |                               |   |             |
+  |            |   +-------------------------------+   |             |
+  |      +-----v-------+                        +------v------+      |
+  |      |  +------+   |                        |  +------+   |      |
+  |      |  | eBPF |   |                        |  | eBPF |   |      |
+  |      |  +------+   |                        |  +------+   |      |
+  |      | veth tc hook|                        | veth tc hook|      |
+  |      +-----^-------+                        +------^------+      |  
+  |            |                                       |             |
+  |    +-------|---------------------------------------|---------+   |
+  |    |       |                                       |         |   |
+  |    |       |               NIC Driver              |         |   |
+  |    |       +-------------------+-------------------+         |   |
+  |    +---------------------------|-----------------------------+   |
+  |                                |                                 |
+  | Kernel Space          +--------v--------+                        |
+  +-----------------------|       NIC       |------------------------+
+                          +-----------------+
+                        ]]></artwork>
+          </figure>
+          <figure anchor="Fig-ebpf-xdp" title="Example architecture of the eBPF Acceleration Model - Forwarding via XDP hook">
+            <artwork align="left" name="" type="" alt=""><![CDATA[
+  +------------------------------------------------------------------+
+  | User Space                                                       |
+  |    +-----------------+                    +-----------------+    |
+  |    |       CNF      +|-------+    +-------|+      CNF       |    |
+  |    |   +---------+  |default |    |default |  +---------+   |    |
+  |    |   | fwd app |  |CNI veth|    |CNI veth|  | fwd app |   |    |
+  |    |   +---|-----+  +|-------+    +-------|+  +----|----+   |    |
+  |    | +-----|-------+ |                    | +------|------+ |    |
+  |    +-|  Different  |-+                    +-|  Different  |-+    |
+  |      | forwarding  |                        | forwarding  |      |
+  |      |   methods   |                        |   methods   |      |
+  |      |based on CNI |                        |based on CNI |      |
+  |      +-----^-------+                        +------^------+      |
+  |            |                                       |             |
+  |      +-----|-------+                        +------|------+      |
+  -------|    AF_XDP   |------------------------|    AF_XDP   |------|
+  |      |    socket   |                        |    socket   |      |
+  |      +-----^-------+                        +-----^-------+      |
+  |            |                                       |             |
+  |            |   +-------------------------------+   |             |
+  |            |   |                               |   |             |
+  |            |   |       Networking Stack        |   |             |
+  |            |   |                               |   |             |
+  |            |   +-------------------------------+   |             |
+  |            |                                       |             |
+  |    +-------|---------------------------------------|--------+    |
+  |    | +-----|------+                           +----|-------+|    |
+  |    | |  +--|---+  |                           |  +-|----+  ||    |
+  |    | |  | eBPF |  |         NIC Driver        |  | eBPF |  ||    |
+  |    | |  +------+  |                           |  +------+  ||    |
+  |    | |  XDP hook  |                           |  XDP hook  ||    |
+  |    | +-----^------+                           +----^-------+|    |
+  |    +-------|-------------------^-------------------|--------+    |
+  |            |                                       |             |
+  -------------|---------------------------------------|--------------
+  |            +---------+                   +---------+             |
+  |               +------|-------------------|----------+            |
+  |               | +----|-------+       +---|--------+ |            |
+  |               | |   netdev   |       |   netdev   | |            |
+  |               | |     OR     |       |     OR     | |            |
+  |               | | sub/virtual|       | sub/virtual| |            |
+  |               | |  function  |       |  function  | |            | 
+  | Kernel Space  | +------------+  NIC  +------------+ |            |
+  +---------------|                                     |------------+
+                  +-------------------------------------+
+
+                        ]]></artwork>
+          </figure> 
+          <t>
+            The eBPF Acceleration model leverages the extended Berkeley Packet Filter (eBPF) technology <xref target="eBPF" /> to achieve high-performance packet processing. It allows the execution of sandboxed programs within abstract virtual machines inside the Linux kernel, without requiring changes to the kernel source code or loading kernel modules. To enhance data plane performance, eBPF programs are attached to various BPF hooks within the Linux kernel stack. 
+          </t>
+
+          <t>
+            eXpress Data Path (XDP) and Traffic Control Ingress/Egress (tc)  are the eBPF hook types used by different eBPF acceleration CNIs. XDP is the hook located at the NIC driver, representing the earliest point in the networking stack where a BPF hook can be attached. Traffic Control Ingress/Egress (tc) is the hook at the network interface on the container's incoming/outgoing packet path. When a packet reaches these hooks, an eBPF program is triggered to process it. The packet forwarding paths differ depending on the hooks used:
+          </t>
+
+          <t>
+            In case of packets are forwarded via tc hook, packets between the pod's network interface and the NIC are forwarded through eBPF programs running at the tc hooks attached to both sides, with forwarding facilitated via eBPF maps.
+          </t>
+
+          <t>
+            In case of packets are forwarded via XDP hook, packets are forwarded from the eBPF XDP hook at the NIC driver to an AF_XDP socket <xref target="AFXDP" />. AF_XDP socket is a new Linux socket type that provides an in-kernel short path between user-space and the XDP hook at the networking driver. The eBPF program at the XDP hook redirects packets from the NIC to the AF_XDP socket, bypassing the kernel networking stack. Packets are exchanged between user-space and the AF_XDP socket through a shared memory buffer. From the AF_XDP socket, packets can be forwarded to the pod via various methods depending on the selected CNI, such as: user-space packet forwarding libraries as in AF_XDP CNI plugin <xref target="afxdp-cni" />, normal pod network interface as in Cilium <xref target="Cilium" />, or an AF_XDP-supported user-space vSwitch such as OVS-DPDK. This AF_XDP in-kernel short path is only applicable to NIC ingress packets. Pod egress packets are forwarded via eBPF programs attached to traffic control hooks.
+          </t>  
+
+          <t>
+            <xref target="Fig-ebpf-tc" />, <xref target="Fig-ebpf-xdp" /> show the corresponding model architectures of 2 eBPF Acceleration Model types: Forwarding via traffic control hook and Forwarding via XDP hook. Notable examples of these models are listed below:
+          </t>
+
+	      <t>
+	       o Forwarding via traffic control hook: Calico <xref target="Calico" />, Cilium <xref target="Cilium" /> 
+	      </t>
+	      <t>
+	       o Forwarding via XDP hook: AF_XDP K8s plugin <xref target="afxdp-cni" />, Cilium with XDP forwarding enabled, Userspace CNI <xref target="userspace-cni" /> with an AF_XDP-supported user-space vSwitch such as OVS-DPDK <xref target="ovs-dpdk" /> or VPP <xref target="vpp" />
+	      </t>
+
+          <t>
+            To set up these kinds of eBPF Acceleration networking model, the corresponding CNIs of each model need to be installed and configured to map pod interfaces to NIC ports. In case of using user-space vSwitch, the AF_XDP-supported version of the vSwitch needs to be installed. The NIC ports can be bound to the vSwitch's AF_XDP PMD via vSwitch port configurations. Then, packet transfer between pods and vSwitch is configured via Userspace CNI.
+          </t>
+
+          <t>
+          	Container network performance of Cilium project is reported by the project itself in <xref target="cilium-benchmark" />. Meanwhile, AF_XDP performance and comparisons with DPDK are detailed in <xref target="intel-AFXDP" /> and <xref target="LPC18-DPDK-AFXDP" />, respectively.
+          </t>
+        </section> 
+
+        <section anchor="Smart-NIC" title="Smart-NIC Acceleration Model">
+          <figure anchor="Fig-Smart-NIC" title="Examples of Smart-NIC Acceleration Model">
+            <artwork align="left" name="" type="" alt=""><![CDATA[
+  +------------------------------------------------------------------+
+  | User Space                                                       |
+  |    +-----------------+                    +-----------------+    |
+  |    |       CNF      +|-------+    +-------|+       CNF      |    |
+  |    |   +---------+  |default |    |default |  +---------+   |    |
+  |    |   | fwd app |  |CNI veth|    |CNI veth|  | fwd app |   |    |
+  |    |   +---|-----+  +|-------+    +-------|+  +----|----+   |    |
+  |    | +-----|-------+ |                    | +------|------+ |    |
+  |    +-|  vf driver  |-+                    +-|  vf driver  |-+    |
+  |      +-----^-------+                        +------^------+      |
+  |            |                                       |             |
+  -------------|---------------------------------------|--------------
+  |            +---------+                   +---------+             |
+  |               +------|-------------------|------+                |
+  |               | +----v-----+       +-----v----+ |                |
+  |               | | virtual  |       | virtual  | |                |
+  |               | | function |  NIC  | function | |                |
+  | Kernel Space  | +----^-----+       +-----^----+ |                |
+  +---------------|      |                   |      |----------------+
+                  | +----v-------------------v----+ |
+                  | |   NIC Classify and Queue    | |
+                  | +-----------------------------+ |
+                  +---------------------------------+
+                        ]]></artwork>
+          </figure>   
+	        <t>
+	          <xref target="Fig-Smart-NIC" /> shows the Smart-NIC acceleration model, which leverages the packet acceleration features of Smart-NIC cards.
+          </t>
+
+          <t>
+            Single-Root I/O Virtualization (SR-IOV) is a commonly used packet acceleration technique supported by Smart-NIC cards from various vendors. SR-IOV extends PCIe specifications to enable multiple partitions running simultaneously within a system to share PCIe devices. In this context, the NIC creates virtual replicas of PCI functions, known as virtual functions (VFs), each of which is directly connected to a container's network interface. Using SR-IOV, data packets from external sources bypass both the kernel and user-space, and are directly forwarded to the container's virtual network interface. The SR-IOV network device plugin for Kubernetes <xref target="SR-IOV" /> is recommended for creating a special interface in each container, controlled by the VF driver.
+	        </t>
+
+          <t>
+            Smart-NICs from some vendors also support the XDP eBPF packet acceleration technique. This approach retains the same eBPF acceleration networking model, with the key difference being that the XDP eBPF program runs on the Smart-NIC card instead of the host machine. This setup frees the host machine's CPU resources for application workloads.
+          </t>
+
+          <t>
+            To set up the SR-IOV acceleration container network, SR-IOV capable NIC cards and BIOS support for creating VFs on the NIC are required. After creating the VFs, they must be bound to a DPDK-compatible driver, such as VFIO. Pods can then be configured to use these VFs via SR-IOV network plugin configurations. In the case of the eBPF/XDP offloading container network, Cilium CNI with its eBPF offloading feature must be installed and properly configured.
+          </t>
+
+          <t>
+            It is worth noting that Smart-NIC features are also available in a new class of programmable networking device called the "any" Processing Units (xPU), such as Data Processing Units (DPUs) and Infrastructure Processing Units (IPUs). An xPU combines Smart-NIC capabilities, CPU cores, and acceleration engines, enabling it to offload, accelerate, and isolate networking and data processing tasks from the host machine’s CPU resources. When using an xPU for container networking, control plane functions (e.g., Kubernetes kube-proxy) can be offloaded to the xPU. The accelerated datapath between the CNF and the xPU data plane can be implemented using techniques like SR-IOV or its enhanced version, Scalable IOV. Currently, xPU-based container networking is a nascent technology with limited implementation and documentation. Configuring such networks may require xPU-supported CNIs and xPU network operators (e.g <xref target="Bluefield" />).
+          </t>
+	      </section>
+
+        <section anchor="Model-Combination" title="Model Combination">
+          <figure anchor="Fig-model-combination" title="Examples of Model Combination deployment">
+            <artwork align="left" name="" type="" alt=""><![CDATA[
+  +------------------------------------------------------------------+
+  | User Space                                                       |
+  | +--------------------+                    +--------------------+ |
+  | |         CNF       +|-------+    +-------|+        CNF        | |
+  | |     +---------+   |default |    |default |    +---------+    | |   
+  | |     | fwd app |   |CNI veth|    |CNI veth|    | fwd app |    | |
+  | |     +-|-----|-+   +|-------+    +-------|+    +-|-----|-+    | |    
+  | | +-----|+  +-|----+ |                    | +-----|+  +-|----+ | |
+  | +-|  vf  |--|virtio|-+                    +-|  vf  |--|virtio|-+ |
+  |   |driver|  |/memif|                        |driver|  |/memif|   |
+  |   +---^--+  +---^--+                        +--^---+  +---^--+   |
+  |       |         |                              |          |      |
+  |       |         |                              |          |      |
+  |       |     +---v--------+             +-------v----+     |      |
+  |       |     | vhost-user |             | vhost-user |     |      |
+  |       |  +--|  / memif   |-------------|  / memif   |--+  |      |
+  |       |  |  +------------+             +------------+  |  |      |
+  |       |  |      User space DPDK-supported vSwitch      |  |      |
+  |       |  +---------------------------------------------+  |      |
+  |       |                                                   |      |
+  --------|---------------------------------------------------|-------
+  |       +-----------+                         +-------------+      |
+  |              +----|-------------------------|---+                |
+  |              |+---v--+                  +---v--+|                |
+  |              ||  vf  |                  |  vf  ||                |
+  |              |+------+                  +------+|                |
+  | Kernel Space |                                  |                |
+  +--------------|                NIC               |----------------+
+                 +----------------------------------+ 
+                        ]]></artwork>
+          </figure>   
+          <t>
+            <xref target="Fig-model-combination" /> depicts the networking model that combines the user-space vSwitch model and the Smart-NIC acceleration model. This model is often used in service function chain scenarios where two different types of traffic flows are present: North/South traffic and East/West traffic. 
+          </t>
+
+          <t>
+            North/South traffic is traffic betwen the NIC and CNFs. Meanwhile, East/West traffic is traffic between multiple CNFs within the same host machine. An example of this packet acceleration technique combination involves using user-space vSwitch models, such as OVS-DPDK or VPP, for East/West traffic and Smart-NIC models, such as SR-IOV, for North/South traffic. The SR-IOV datapath can help avoid potential performance bottlenecks in the North/South direction, which might otherwise be caused by the user-space vSwitch. Meanwhile, the user-space vSwitch facilitates East/West traffic transmission entirely in the user-space.
+          </t> 
+
+          <t>
+            To set up this combined networking model, Multus CNI must be correctly set up to enable the appropriate CNI for each pod's interface. For example, the interface for North/South traffic should be configured using SR-IOV network plugin. The interface for East/West traffic should be configured using Userspace CNI plugin. 
+          </t>
+
+          <t>
+            The throughput advantages of these combined networking models in different traffic direction scenarios are documented in <xref target="Intel-SRIOV-NFV" />.
+          </t>
+
+        </section>
+      </section>   
+    </section>
+
+      <section numbered="true" toc="default">
+        <name>Resources Configuration</name>
+
+        <t>
+        The resource configuration considerations listed here apply not only to the CNF but also to other components in a containerized System Under Test (SUT). A containerized SUT comprises NICs, possible cables between hosts, the kernel and/or vSwitch, and CNFs.
+        </t>
+
+        <t>
+        Note that this section describes only the new resource configuration parameters introduced by containerized infrastructures. The configuration parameters for vSwitch and VNF environments, as defined in <xref target="RFC8172" /> and <xref target="RFC8204" />, remain applicable.
+        </t>
+
+        <section anchor="Environment" title="Container Deployment Environment">
+          <t>
+            Compared with a VM-based VNF benchmarking environment, a CNF benchmarking environment introduces additional deployment-specific factors that must be explicitly specified to ensure reproducibility and comparability of results:
+          </t>
+
+          <t>
+            - Container hosting infrastructure (whether deployed on a virtualized environment or bare-metal hardware)
+          </t>
+          <t>
+            - Kubernetes details (distribution and version)
+          </t>
+          <t>
+            - CNI plugin details (selected plugin, version, and its specific configuration parameters)
+          </t>
+          <t>
+            - NIC offload capabilties
+          </t>
+        </section>
+
+        <section anchor="Performance-CPU" title="CPU Isolation / NUMA Affinity">
+	        <t>
+	          CPU pinning offers benefits such as maximizing cache utilization, eliminating operating system thread scheduling overhead, and coordinating network I/O by guaranteeing resources. An example of CPU pinning technology in containerized infrastructure is the CPU Manager for Kubernetes (CMK) <xref target="CMK" />. This technology has proven effective in avoiding the "noisy neighbor" problem, as demonstrated in previous experiences <xref target="Intel-EPA" />. Additionally, the benefits of CPU isolation techniques extend beyond addressing the "noisy neighbor" problem. Different CNFs can also interfere with each other and with the vSwitch if used.
+	        </t>
+	
+	        <t>
+	          NUMA impacts the speed of CPU cores accessing memory. CPU cores in the same NUMA node can access shared memory in that node locally, which is faster than accessing memory in a different NUMA node. In a containerized network, packet forwarding occurs through the NIC, CNF, and possibly a vSwitch, depending on the chosen networking model. The NUMA node alignment of an NIC can be determined via the PCI device’s node affinity. Specific CPU cores can also be directly assigned to CNFs and vSwitches via configuration settings. Network performance may vary depending on whether the NUMA node hosting the physical network interface, vSwitch, and CNF is the same or different. Benchmarking experience for cross-NUMA performance impacts <xref target="cross-NUMA-vineperf" /> revealed the following:
+	        </t>
+	
+	        <t>
+	          o Performance degradation is worse when a single NUMA node serves multiple interfaces than in cross-NUMA scenarios.
+          </t>
+	
+	        <t>
+	          o Sharing CPUs across NUMA nodes results in significant performance drops.
+	        </t>
+
+          <t>
+            Note that CPU pinning and NUMA affinity considerations also apply to VM-based VNFs. Dedicated CPU cores from a specific NUMA node can be assigned to VNFs and vSwitches via their runtime configurations. The NUMA node of an NIC can be identified from PCI device information, and a host’s NUMA nodes can be scheduled to virtual machines by specifying the desired nodes in their settings.
+          </t>
+
+          <t>
+            For this consideration, additional configuration parameters should be considered for containerized infrastructure benchmarking are: 
+          </t>
+
+          <t>
+            - Selected CPU Isolation level
+          </t>
+  
+          <t>
+            - NUMA cores allocation to pods/CNFs, vSwitch, NIC 
+          </t>
+        </section>
+	  
+        <section anchor="Performance-Hugepage" title="Pod Hugepages">
+	        <t>
+	          Hugepages configure large memory page sizes to reduce Translation Lookaside Buffer (TLB) miss rates and increase application performance. This boosts the efficiency of logical/virtual to physical address lookups performed by a CPU's memory management unit and enhances overall system performance. In containerized infrastructures, containers are isolated at the application level, allowing administrators to configure hugepages more granularly (e.g., Kubernetes supports 2 MB or 1 GB hugepages for containers). These pages are dedicated to the application and cannot be used by other processes, enabling more efficient utilization. From a network benchmarking perspective, the impact of hugepages on general packet processing may be relatively minor. However, application-level considerations are necessary to fully evaluate their impact. For example, in DPDK-based applications, it has been demonstrated in <xref target="Intel-EPA" /> that hugepages improve network performance because packet handling processes run within the application.
+	        </t>
+
+          <t>
+            For this consideration, additional configuration parameters should be considered for containerized infrastructure benchmarking are: 
+          </t>
+
+          <t>
+            - Pod hugepage size
+          </t>
+	      </section>
+	  
+        <section anchor="Performance-CPU-MEM" title="Pod CPU Cores and Memory Allocation">
+	        <t>
+	          Resource allocation choices, such as CPU cores and RAM allocation to pods, PMD and vSwitch, can significantly impact container network performance. Benchmarking experiences reported in <xref target="GLOBECOM-21-benchmarking-kubernetes" /> by <xref target="ViNePERF" /> verified that:
+	        </t>
+	        <t>
+	          o Allocating 2 CPUs per pod is insufficient for all packet frame sizes. For larger packet sizes (over 1024 bytes), increasing CPU per pods significantly improves the throughput. Varying RAM allocation to Pods also results in different throughput performances.
+            </t>
+	        <t>
+	          o Not assigning dedicated CPU cores to DPDK PMD leads to significant performance degradation.
+            </t>
+	        <t>
+	          o Increasing CPU core allocation to OVS-DPDK vSwitch does not improve performance, but increasing cores for VPP vSwitch reduces latency.
+            </t>
+            <t>
+              Additionally, assigning dedicated CPU cores to PMD’s Rx queues in user-space vSwitch can enhance network performance.
+            </t>
+
+          <t>
+            For this consideration, the additional configuration parameters should be considered for containerized infrastructure benchmarking are: 
+          </t>
+
+          <t>
+            - Pod CPU cores allocation
+          </t>
+  
+          <t>
+            - Pod RAM allocation
+          </t>
+	      </section>
+
+        <section anchor="afxdp-conf" title="AF_XDP Configuration">
+          <t> 
+            AF_XDP operates in two packet polling modes: busy and non-busy. In busy polling mode, AF_XDP uses the same CPU cores for application and packet Rx/Tx processing. In non-busy polling mode, it uses separate CPU cores for these tasks. The choice of AF_XDP mode and CPU core configuration for application and packet processing in non-busy polling mode can affect benchmarking performance. <xref target="LPC18-DPDK-AFXDP" />
+          </t>
+
+         <t>
+            For this consideration, the additional configuration parameters should be considered for containerized infrastructure benchmarking are: 
+          </t>
+
+          <t>
+            - AF_XDP busy polling mode
+          </t>
+  
+          <t>
+            - Number of CPU cores allocated in non-busy polling mode
+          </t>
+        </section>
+
+	      <section anchor="service-function-chain" title="Service Function Chaining">
+          <t> 
+            Benchmarking scenarios for containerized and VM-based infrastructures may include various operational use cases. Traditional black-box benchmarking measures packet in-out performance at physical network ports, as hardware typically performs a single function. However, in NFV environments, physical network ports are often connected to multiple CNFs (e.g., multiple PVP test setups described in <xref target="ETSI-TST-009" />), a scenario referred to as Service Function Chaining. In addition to the differences among CNI plugin networking models discussed above, benchmarking scenarios should also account for factors such as the number of CNFs or network services deployed on a single host. Another aspect to consider in a service function chaining scenario is that a single CNF or VNF may be part of multiple service chains. In such cases, varying resource scheduling policies during runtime (e.g., CNF activation scheduling,  CPU scheduling) may also lead to network function throughput and loss improvement as described in <xref target="NFVnice" />.
+	        </t>
+
+         <t>
+            For this consideration, the additional configuration parameters should be considered for containerized infrastructure benchmarking are: 
+          </t>
+
+          <t>
+            - Number of CNFs
+          </t>
+
+          <t>
+            - Service chain CNF composition (e.g.,  CNF belongs to multiple concurrent chains)
+          </t>
+
+          <t>
+            - Service chain resource scheduling policies (e.g., CNF activation time, CPU allocation time, etc.)
+          </t>
+  
+          <t>
+            - Selected CNI Plugin
+          </t>
+        </section>
+
+        <section anchor="Considerations-other" title="Other Considerations">
+          <t> 
+            In addition to intra-node test scenarios, inter-node scenarios should also be considered for container network benchmarking, where container services are deployed across different nodes. Inter-node networking is required to provide connectivity for CNFs between nodes. According to <xref target="ETSI-NFV-IFA-038" />, several technologies enable inter-node networking, including overlay technologies (e.g., VXLAN, IP-in-IP), BGP routing, Layer 2 underlay, direct networking using dedicated NICs for each pod, or Kubernetes LoadBalancer services. Different protocols and technologies may lead to varying performance outcomes.
+          </t>
+        </section>  
+      </section>
+
+    </section>
+
+    <section numbered="true" toc="default">
+      <name>IANA Considerations</name>
+      <t> 
+        This document does not require any IANA actions.
+      </t>
+    </section>
+
+    <section numbered="true" toc="default">
+      <name>Security Considerations</name>
+      <t> 
+        Benchmarking activities as described in this memo are limited to technology characterization of a DUT/SUT using controlled stimuli in a laboratory environment with dedicated address space and the constraints specified in the sections above.
+      </t>
+      <t> 
+        The benchmarking network topology will be an independent test setup and MUST NOT be connected to devices that may forward the test traffic into a production network or misroute traffic to the test management network.
+      </t>
+      <t> 
+        Further, benchmarking is performed on a "black-box" basis and relies solely on measurements observable external to the DUT/SUT.
+      </t>
+      <t> 
+        Special capabilities SHOULD NOT exist in the DUT/SUT specifically for benchmarking purposes.  Any implications for network security arising from the DUT/SUT SHOULD be identical in the lab and in production networks.
+      </t>
+    </section>
+  </middle>
+  <!--  *****BACK MATTER ***** -->
+
+ <back>
+
+<references>
+      <name>References</name>
+      <references>
+	  <name>Informative References</name>
+
+    <reference anchor="RFC2119">
+        <front>
+            <title>Key words for use in RFCs to Indicate Requirement Levels</title>
+            <author initials="S." surname="Bradner" />
+            <date month="March" year="1997" />
+        </front>
+        <seriesInfo name="RFC" value="2119" />
+    </reference>
+
+    <reference anchor="RFC8172">
+        <front>
+            <title>Considerations for Benchmarking Virtual Network Functions and Their Infrastructure</title>
+            <author initials="A." surname="Morton" />
+            <date month="July" year="2017" />
+        </front>
+        <seriesInfo name="RFC" value="8172" />
+    </reference>
+
+    <reference anchor="RFC8204">
+        <front>
+            <title>Benchmarking Virtual Switches in the Open Platform for NFV (OPNFV)</title>
+            <author initials="M." surname="Tahhan" />
+            <author initials="B." surname="O'Mahony" />
+            <author initials="A." surname="Morton" />
+            <date month="September" year="2017" />
+        </front>
+        <seriesInfo name="RFC" value="8204" />
+    </reference>    
+
+    <reference anchor="ETSI-TST-009">
+        <front>
+            <title>Network Functions Virtualisation (NFV) Release 3; Testing; Specification of Networking Benchmarks and Measurement Methods for NFVI</title>
+        <author>
+          <organization>ETSI</organization>
+            </author>
+            <date month="December" year="2020" />
+        </front>
+        <seriesInfo name="ETSI GS NFV-TST" value="009" />
+        <seriesInfo name="Version" value="3.4.1" />
+    </reference>  
+
+    <reference anchor="ETSI-NFV-IFA-038">
+        <front>
+            <title>Network Functions Virtualisation (NFV) Release 4; Architectural Framework; Report on network connectivity for container-based VNF</title>
+            <author>
+          <organization>ETSI</organization>
+            </author>
+            <date month="November" year="2021" />
+        </front>
+        <seriesInfo name="ETSI GS NFV-IFA" value="038" />
+        <seriesInfo name="Version" value="4.1.1" />
+    </reference> 
+
+    <reference anchor="Flannel" target="https://github.com/flannel-io/flannel">
+        <front>
+            <title>flannel</title>
+		    <author>
+			    <organization>Flannel</organization>
+            </author>
+        </front>
+    </reference> 
+
+    <reference anchor="Calico" target="https://docs.tigera.io/calico/latest/about">
+        <front>
+            <title>Calico</title>
+		    <author>
+			    <organization>Tigera</organization>
+            </author>
+        </front>
+    </reference> 
+
+    <reference anchor="Cilium" target="https://docs.cilium.io/en/stable/">
+        <front>
+            <title>Cilium</title>
+        <author>
+          <organization>Cilium</organization>
+            </author>
+        </front>
+    </reference> 
+
+    <reference anchor="OVS" target="https://docs.openvswitch.org/en/latest/">
+        <front>
+            <title>Open vSwitch</title>
+		    <author>
+			    <organization>Linux Foundation</organization>
+            </author>
+        </front>
+    </reference> 
+
+    <reference anchor="OVN" target="https://ovn-kubernetes.io/">
+        <front>
+            <title>ovn-kubernetes</title>
+		    <author>
+			    <organization>Cloud Native Computing Foundation</organization>
+            </author>
+        </front>
+    </reference> 
+
+    <reference anchor="eBPF" target="https://ebpf.io/">
+        <front>
+            <title>eBPF, extended Berkeley Packet Filter</title>
+		    <author>
+			    <organization>Linux Foundation</organization>
+            </author>
+        </front>
+    </reference> 
+
+    <reference anchor="SR-IOV" target="https://github.com/k8snetworkplumbingwg/sriov-cni">
+        <front>
+            <title>SR-IOV CNI plugin</title>
+		    <author>
+			    <organization>Intel</organization>
+            </author>
+        </front>
+    </reference> 
+
+    <reference anchor="ovs-dpdk" target="https://docs.openvswitch.org/en/latest/intro/install/dpdk/">
+        <front>
+            <title>Open vSwitch with DPDK</title>
+		    <author>
+			    <organization>Linux Foundation</organization>
+            </author>
+        </front>
+    </reference> 
+
+    <reference anchor="vpp" target="https://s3-docs.fd.io/vpp/25.10/">
+        <front>
+            <title>VPP - Vector Packet Processor</title>
+		    <author>
+			    <organization>Fast Data Project</organization>
+            </author>
+        </front>
+    </reference> 
+
+    <reference anchor="AFXDP" target="https://docs.kernel.org/networking/af_xdp.html">
+        <front>
+            <title>AF_XDP</title>
+        <author>
+          <organization>The Linux Kernel</organization>
+            </author>
+        </front>
+    </reference>
+
+    <reference anchor="Bluefield" target="https://access.redhat.com/articles/6804281">
+        <front>
+            <title>OVN/OVS offloading with OpenShift on NVIDIA BlueField-2 DPUs</title>
+        <author>
+          <organization>RedHat</organization>
+            </author>
+        <date year="2023" month="May"/>
+        </front>
+    </reference> 
+
+    <reference anchor="afxdp-cni" target="https://github.com/redhat-et/afxdp-plugins-for-kubernetes">
+        <front>
+            <title>AF_XDP Plugins for Kubernetes</title>
+		    <author>
+			    <organization>RedHat</organization>
+            </author>
+        </front>
+    </reference>
+
+    <reference anchor="userspace-cni" target="https://github.com/intel/userspace-cni-network-plugin">
+        <front>
+            <title>Userspace CNI Plugin</title>
+		    <author>
+			    <organization>Intel</organization>
+            </author>
+        </front>
+    </reference>     
+
+    <reference anchor="CMK" target="https://github.com/intel/CPU-Manager-for-Kubernetes">
+        <front>
+            <title>CPU Manager for Kubernetes</title>
+        <author>
+          <organization>Intel</organization>
+            </author>
+        </front>
+    </reference> 
+
+    <reference anchor="Intel-EPA" target="https://networkbuilders.intel.com/docs/networkbuilders/enhanced-platform-awareness-in-kubernetes-performance-benchmark-report.pdf">
+        <front>
+            <title>Enhanced Platform Awareness in Kubernetes</title>
+		    <author>
+			    <organization>Intel</organization>
+            </author>
+		    <date year="2018" month="January"/>
+        </front>
+    </reference>     
+
+    <reference anchor="Intel-SRIOV-NFV" target="https://www.intel.com/content/www/us/en/content-details/335625/sr-iov-for-nfv-solutions-practical-considerations-and-thoughts-technical-brief.html">
+        <front>
+            <title>SR-IOV for NFV Solutions Practical Considerations and Thoughts</title>
+        <author>
+          <organization>Intel</organization>
+            </author>
+        <date year="2017" month="February"/>
+        </front>
+    </reference>    
+
+    <reference anchor="intel-AFXDP" target="https://builders.intel.com/docs/networkbuilders/af-xdp-sockets-high-performance-networking-for-cloud-native-networking-technology-guide.pdf">
+        <front>
+            <title>AF_XDP Sockets: High Performance Networking for Cloud-Native Networking Technology Guide</title>
+        <author>
+          <organization>Intel</organization>
+            </author>
+        <date year="2021" month="January"/>
+        </front>
+    </reference>
+
+    <reference anchor="ViNePERF" target="https://lf-anuket.atlassian.net/wiki/spaces/HOME/pages/21896595/ViNePERF">
+        <front>
+            <title>Project: Virtual Network Performance for Telco NFV</title>
+		    <author>
+			    <organization>Anuket</organization>
+            </author>
+        </front>
+    </reference> 
+
+    <reference anchor="cross-NUMA-vineperf" target="https://lf-anuket.atlassian.net/wiki/spaces/HOME/pages/21859213/Cross-NUMA+performance+measurements+with+VSPERF">
+        <front>
+            <title>Cross-NUMA performance measurements with VSPERF</title>
+		    <author>
+			    <organization>Anuket</organization>
+            </author>
+        </front>
+    </reference> 
+
+    <reference anchor="cilium-benchmark" target="https://cilium.io/blog/2021/05/11/cni-benchmark">
+        <front>
+            <title>CNI Benchmark: Understanding Cilium Network Performance</title>
+        <author>
+          <organization>Cilium</organization>
+            </author>
+        <date year="2021" month="May"/>
+        </front>
+    </reference> 
+
+    <reference anchor="GLOBECOM-21-benchmarking-kubernetes" target="https://ieeexplore.ieee.org/document/9685803">
+        <front>
+            <title>Benchmarking Kubernetes Container-Networking for Telco Usecases</title>
+            <author initials="R." surname="Sridhar" />
+            <author initials="F." surname="Paganelli" />
+            <author initials="A." surname="Morton" />
+            <date month="December" year="2021" />
+        </front>
+        <seriesInfo name="DOI" value="10.1109/GLOBECOM46510.2021.9685803"></seriesInfo>
+    </reference> 
+
+    <reference anchor="LPC18-DPDK-AFXDP" target="http://oldvger.kernel.org/lpc_net2018_talks/lpc18_paper_af_xdp_perf-v2.pdf">
+        <front>
+            <title>The Path to DPDK Speeds for AF_XDP</title>
+            <author initials="M." surname="Karlsson" />
+            <author initials="B." surname="Topel" />
+            <date month="November" year="2018" />
+        </front>
+    </reference> 
+
+    <reference anchor="NFVnice" target="https://ieeexplore.ieee.org/document/9007052">
+        <front>
+            <title>NFVnice: Dynamic Backpressure and Scheduling for NFV Service Chains</title>
+            <author initials="S." surname="Kulkarni" />
+            <author initials="W." surname="Zhang" />
+            <author initials="J." surname="Hwang" />
+            <author initials="S." surname="Rajagopalan" />
+            <author initials="K." surname="Ramakrishnan" />
+            <author initials="T." surname="Wood" />
+            <date month="April" year="2020" />
+        </front>
+        <seriesInfo name="DOI" value="10.1109/TNET.2020.2969971"></seriesInfo>
+    </reference> 
+
+</references>
+</references>
+
+  <section numbered="true" toc="default">
+    <name>Change Log (to be removed by RFC Editor before publication)</name>
+
+    <section title="Since draft-ietf-bmwg-containerized-infra-06">
+    <t>
+      Added CNF service chain resource scheduling policy consideration parameters
+      Added Container Deployment Environment configurations
+    </t>
+
+    </section>
+
+    <section title="Since draft-ietf-bmwg-containerized-infra-03">
+    <t>
+      Changed eBPF acceleration model categorization into: Fowarding via tc hook and Forwarding via XDP hook.
+    </t>
+    <t>
+      Update latest information for references.
+    </t>
+    <t>
+      Enhance English grammar of the whole document.
+    </t>
+    </section>
+
+    <section title="Since draft-ietf-bmwg-containerized-infra-01">
+    <t>
+      Addressed comments and feedbacks from the related RFC 8204 document author - Maryam Tahhan:
+    </t>
+    <t>
+      Updated general description for all accelerated networking models: using Multus CNI to enable multiple CNI configurations for hybrid container networking stack.
+    </t>
+    <t>
+      Updated illustration of the default CNI network interface in all accelerated networking models.
+    </t>
+    <t>
+      Updated illustration of the separated networking stack inside CNF in normal non-acceleration networking model.
+    </t>
+    <t>
+      Made minor correction on the descriptions of AF_XDP and eBPF datapath.
+    </t>
+    <t>
+      Added xPU networking device mentioning in the Smart-NIC acceleration model.
+    </t>
+    <t>
+      Added AF_XDP busy/non-busy polling mode resource configuration consideration.
+    </t>
+    </section>
+
+    <section title="Since draft-ietf-bmwg-containerized-infra-00">
+    <t>
+      Minor editorial changes and nits correction.
+    </t>
+    </section>
+
+    <section title="Since draft-dcn-bmwg-containerized-infra-13">
+    <t>
+      Updated environment setup repeatability guidance for all mentioned container networking models.
+    </t>
+    </section>
+
+    <section title="Since draft-dcn-bmwg-containerized-infra-12">
+    <t>
+      Updated scope to clearly specify the gaps of related RFCs.
+    </t>
+    </section>
+
+    <section title="Since draft-dcn-bmwg-containerized-infra-11">
+    <t>
+      Merged Containerized infrastructure overview into Introduction section
+    </t>
+    <t>
+      Added Scope section which briefly explains the draft contribution in a clear way.
+    </t>
+    <t>
+      Mentioned the additional benchmarking configuration parameters for containerized infrastructure benchmarking in each Benchmarking Consideration sub-sections.
+    </t>
+    <t>
+      Removed Benchmarking Experiences Appendixes
+    </t>
+    </section>
+
+    <section title="Since draft-dcn-bmwg-containerized-infra-10">
+    <t>
+      Updated Benchmarking Experience appendixes with latest results from Hackathon events.
+    </t>
+    <t>
+      Re-orgianized Benchmarking Experience appendixes to match with the the proposed benchmarking consideration inside the draft (Networking Models and Resources Configuration)
+    </t>
+    <t>
+      Minor enhancement changes to Introduction and Resources Configuration consideration sections such as general description for container network plugin, which resources can also be applied for VM-VNF.
+    </t>
+    </section>
+
+    <section title="Since draft-dcn-bmwg-containerized-infra-09">
+    <t>
+      Removed Additional Deployment Scenarios (section 4.1 of version 09). We agreed with reviews from VinePerf that performance difference between with-VM and without-VM scenarios are negligible
+    </t>
+    <t>
+      Removed Additional Configuration Parameters (section 4.2 of version 09). We agreed with reviews from VinePerf that these parameters are explained in Performance Impacts/Resources Configuration section
+    </t>
+    <t>
+      As VinePerf suggestion to categorize the networking models based on how they can accelerate the network performances, rename titles of section 4.3.1 and 4.3.2 of version 09: Kernel-space vSwitch model and User-space vSwitch model to Kernel-space non-Acceleration model and User-space Acceleration model. Update corresponding explanation of Kernel-space non-Acceleration model
+    </t>
+    <t>
+      VinePerf suggested to replace the general architecture of eBPF Acceleration model with 3 seperate architecture for 3 different eBPF Acceleration model: non-AF_XDP, using AF_XDP supported CNI, and using user-space vSwitch which support AF_XDP PMD. Update corresponding explanation of eBPF Acceleration model
+    </t>
+    <t>
+      Renamed Performance Impacts section (section 4.4 of version 09) to Resources Configuration.
+    </t>
+    <t>
+      We agreed with VinePerf reviews to add "CPU Cores and Memory Allocation" consideration into Resources Configuration section
+    </t>
+    </section>
+
+    <section title="Since draft-dcn-bmwg-containerized-infra-08">
+    <t>
+      Added new Section 4. Benchmarking Considerations. Previous Section 4. Networking Models in Containerized Infrastructure was moved into this new Section 4 as a subsection
+    </t>
+    <t>
+      Re-organized Additional Deployment Scenarios for containerized network benchmarking contents from Section 3. Containerized Infrastructure Overview to new Section 4. Benchmarking Considerations as the Addtional Deployment Scenarios subsection
+    </t>
+    <t>
+      Added new Addtional Configuration Parameters subsection to new Section 4. Benchmarking Considerations
+    </t>
+    <t>
+      Moved previous Section 5. Performance Impacts into new Section 4. Benchmarking Considerations as the Deployment settings impact on network performance section
+    </t>
+    <t>
+      Updated eBPF Acceleration Model with AF_XDP deployment option
+    </t>
+    <t>
+      Enhanced Abstract and Introduction's description about the draft's motivation and contribution.
+    </t>
+    </section>
+ 
+    <section title="Since draft-dcn-bmwg-containerized-infra-07">
+    <t>
+      Added eBPF Acceleration Model in Section 4. Networking Models in Containerized Infrastructure
+    </t>
+    <t>
+      Added Model Combination in Section 4. Networking Models in Containerized Infrastructure
+    </t>
+    <t>
+      Added Service Function Chaining in Section 5. Performance Impacts
+    </t>
+    <t>
+      Added Troubleshooting and Results for SRIOV-DPDK Benchmarking Experience
+    </t>
+    </section>
+ 
+    <section title="Since draft-dcn-bmwg-containerized-infra-06">
+    <t>
+      Added Benchmarking Experience of Multi-pod Test
+    </t>
+    </section>
+ 
+    <section title="Since draft-dcn-bmwg-containerized-infra-05">
+    <t>
+      Removed Section 3. Benchmarking Considerations, Removed Section 4. Benchmarking Scenarios for the Containerized Infrastructure
+    </t>
+    <t>
+      Added new Section 3. Containerized Infrastructure Overview, Added new Section 4. Networking Models in Containerized Infrastructure. Added new Section 5. Performance Impacts
+    </t>
+    <t>
+      Re-organized Subsection Comparison with the VM-based Infrastructure of previous Section 3. Benchmarking Considerations and previous Section 4.Benchmarking Scenarios for the Containerized Infrastructure to new Section 3. Containerized Infrastructure Overview
+    </t>
+    <t>
+      Re-organized Subsection Container Networking Classification of previous Section 3. Benchmarking Considerations to new Section 4. Networking Models in Containerized Infrastructure. Kernel-space vSwitch models and User-space vSwitch models were presented as seperate subsections in this new Section 4.
+    </t>
+    <t>
+      Re-organized Subsection Resources Considerations of previous Section 3. Benchmarking Considerations to new Section 5. Performance Impacts as 2 seperate subsections CPU Isolation / NUMA Affinity and Hugepages. Previous Section 5. Additional Considerations was moved into this new Section 5 as the Additional Considerations subsection.
+    </t>
+    <t>
+      Moved Benchmarking Experience contents to Appendix
+    </t>
+    </section>
+ 
+    <section title="Since draft-dcn-bmwg-containerized-infra-04">
+    <t>
+      Added Benchmarking Experience of SRIOV-DPDK.
+    </t>
+    </section>
+ 
+    <section title="Since draft-dcn-bmwg-containerized-infra-03">
+    <t>
+      Added Benchmarking Experience of Contiv-VPP.
+    </t>
+    </section>
+ 
+    <section title="Since draft-dcn-bmwg-containerized-infra-02">
+    <t>
+      Editorial changes only.
+    </t>
+    </section>
+
+    <section title="Since draft-dcn-bmwg-containerized-infra-01">
+    <t>
+      Editorial changes only.
+    </t>
+    </section>
+
+    <section title="Since draft-dcn-bmwg-containerized-infra-00">
+    <t>
+      Added Container Networking Classification in Section 3.Benchmarking Considerations (Kernel Space network model and User Space network model).
+    </t>
+    <t>
+      Added Resources Considerations in Section 3.Benchmarking Considerations(Hugepage, NUMA, RX/TX Multiple-Queue).
+    </t>
+    <t>
+      Renamed Section 4.Test Scenarios to Benchmarking Scenarios for the Containerized Infrastructure, added 2 additional scenarios BMP2VMP and VMP2VMP.
+    </t>
+    <t>
+      Added Additional Consideration as new Section 5.
+    </t>
+    </section>
+
+  </section>
+
+  <section numbered="false" anchor="contributors">
+    <name>Contributors</name>
+      <t>Kyoungjae Sun - ETRI - Republic of Korea</t>
+      <t>Email: kjsun@etri.re.kr</t>
+      <t>Hyunsik Yang - Interdigital - United States of America</t>
+      <t>Email: hyunsik.yang@interdigital.com</t>
+  </section>
+
+  <section numbered="false" anchor="acknowledgments">
+    <name>Acknowledgments</name>
+      <t>The authors would like to thank Al Morton and Maryam Tahhan for their valuable comments and reviews for this work.
+      </t>
+  </section>
+ </back>
+</rfc>
