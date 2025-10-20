@@ -1035,6 +1035,13 @@ the title) for use on http://www.rfc-editor.org/rfcsearch.html. -->
   <section numbered="true" toc="default">
     <name>Change Log (to be removed by RFC Editor before publication)</name>
 
+    <section title="Since draft-ietf-bmwg-containerized-infra-07">
+    <t>
+      Added Container Deployment Environment configurations
+    </t>
+
+    </section>
+
     <section title="Since draft-ietf-bmwg-containerized-infra-06">
     <t>
       Added CNF service chain resource scheduling policy consideration parameters
@@ -1249,12 +1256,52 @@ the title) for use on http://www.rfc-editor.org/rfcsearch.html. -->
 
   </section>
 
-  <section numbered="false" anchor="contributors">
-    <name>Contributors</name>
-      <t>Kyoungjae Sun - ETRI - Republic of Korea</t>
-      <t>Email: kjsun@etri.re.kr</t>
-      <t>Hyunsik Yang - Interdigital - United States of America</t>
-      <t>Email: hyunsik.yang@interdigital.com</t>
+  <section anchor="contributors" numbered="false" removeInRFC="false"
+             toc="include">
+      <name>Contributors</name>
+
+      <t>The following people have substantially contributed to this
+      document:</t>
+
+      <contact fullname="Kyoungjae Sun">
+        <organization>ETRI</organization>
+
+        <address>
+          <email>kjsun@etri.re.kr</email>
+        </address>
+      </contact>
+
+      <contact fullname="Hyunsik Yang">
+        <organization>Interdigital</organization>
+
+        <address>
+          <email>hyunsik.yang@interdigital.com</email>
+        </address>
+      </contact>
+
+      <contact fullname="Rute C. Sofia">
+        <organization>fortiss</organization>
+
+        <address>
+          <email>sofia@fortiss.org</email>
+        </address>
+      </contact>
+
+      <contact fullname="Tina Samizadeh">
+        <organization>fortiss</organization>
+
+        <address>
+          <email>samizadeh@fortiss.org</email>
+        </address>
+      </contact>
+
+      <contact fullname="George Koukis">
+        <organization>ATHENA</organization>
+
+        <address>
+          <email>george.koukis@athenarc.gr</email>
+        </address>
+      </contact>
   </section>
 
   <section numbered="false" anchor="acknowledgments">
